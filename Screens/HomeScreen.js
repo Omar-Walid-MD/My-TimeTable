@@ -1,6 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from 'react-native-vector-icons'
 import styles from '../styles';
+import NavBar from '../Components/Navbar';
 
 export default function HomeScreen({navigation}) {
 
@@ -9,30 +11,28 @@ export default function HomeScreen({navigation}) {
             time: "9:00 AM",
             title: "Electronic Circuits Lec",
             location: "M11",
-            teacher: "Dr. Name Name"
+            instructor: "Dr. Name Name"
         },
         {
             time: "10:40 AM",
-            title: "Advanced Algorithms Lec",
+            title: "Advanced Algorithmssssss Lec",
             location: "M6",
-            teacher: "Dr. Name Name"
+            instructor: "Dr. Name Name"
         },
         {
             time: "12:20 PM",
             title: "Digital Electronics Tutorial",
             location: "CR2",
-            teacher: "Dr. Name Name"
+            instructor: "Dr. Name Name"
         },
     ]
 
     return (
         <View style={styles.pageContainer}>
-            <View style={{height:75,width:"100%",backgroundColor:"lightgray",marginBottom:50,paddingTop:25}}>
-                
-            </View>
+            <NavBar navigation={navigation} />
 
 
-            <Text style={{fontSize:20}}>Today</Text>
+            <Text style={{fontSize:20,marginTop:30}}>Today</Text>
             <View style={{width:"100%",marginTop:10,paddingHorizontal:20}}>
                 <View style={{width:"100%",height:2.5,backgroundColor:"black"}}></View>
             </View>
@@ -44,7 +44,7 @@ export default function HomeScreen({navigation}) {
                     <Text style={{fontSize:25,marginBottom:20,textAlign:"center"}}>{period.title}</Text>
                     <View style={{flexDirection:"row",justifyContent:"space-between",width:"100%"}}>
                         <Text style={{fontSize:20,color:"dimgray"}}>At: {period.location}</Text>
-                        <Text style={{fontSize:20,color:"dimgray"}}>By: {period.teacher}</Text>
+                        <Text style={{fontSize:20,color:"dimgray"}}>By: {period.instructor}</Text>
                     </View>
                 </View>
                 )

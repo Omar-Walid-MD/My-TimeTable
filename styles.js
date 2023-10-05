@@ -11,6 +11,32 @@ const styles = StyleSheet.create({
   pageContainer: {
     alignItems: "center",
     width: "100%",
+  },
+
+  navbar: {
+    height:85,
+    width:"100%",
+    backgroundColor:"lightgray",
+    paddingTop:35,
+    paddingHorizontal:25,
+    flexDirection:"row",
+    gap:25
+  },
+
+  textInput: {
+    fontSize:20,
+    padding:5,
+    borderColor:"lightgray",
+    borderWidth:1,
+    borderRadius:5
+  },
+
+  tableTab: {
+    paddingBottom:10
+  },
+  tableTabActive: {
+    paddingBottom:10,
+    borderBottomWidth:2
   }
 });
 
