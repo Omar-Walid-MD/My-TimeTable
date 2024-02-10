@@ -4,16 +4,18 @@ import { StyleSheet } from "react-native";
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import TimetableScreen from '../Screens/TimetableScreen';
+import { getCurrentTable, getTables } from '../Store/slice/slice';
 
 const Stack = createNativeStackNavigator();
 
 export default function StackNavigator()
 {
     const dispatch = useDispatch();
+    dispatch(getTables());
+    dispatch(getCurrentTable());
 
-    useEffect(()=>{
-
-    },[]);
+    // useEffect(()=>{
+    // },[]);
 
     return (
         <Stack.Navigator screenOptions={{headerShown: false, gestureEnabled: false}}>

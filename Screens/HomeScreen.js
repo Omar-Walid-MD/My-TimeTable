@@ -3,29 +3,29 @@ import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView } from 're
 import { MaterialCommunityIcons } from 'react-native-vector-icons'
 import styles from '../styles';
 import NavBar from '../Components/Navbar';
+import { useSelector } from 'react-redux';
+import store from '../Store/store';
+import { useEffect, useState } from 'react';
 
 export default function HomeScreen({navigation}) {
 
-    const periods = [
+    const tables = useSelector(store => store.tables.tables);
+    const currentTable = useSelector(store => store.tables.currentTable);
+    
+    const dayStrings = ["sun","mon","tue","wed","thu","fri","sat"]
+    let day = dayStrings[new Date().getDay()];
+    // day = "sat";
+
+    const [periods,setPeriods] = useState([]);
+    
+    // console.log(tables);
+    
+    useEffect(()=>{
+        if(tables)
         {
-            time: "9:00 AM",
-            title: "Electronic Circuits Lec",
-            location: "M11",
-            instructor: "Dr. Name Name"
-        },
-        {
-            time: "10:40 AM",
-            title: "Advanced Algorithmssssss Lec",
-            location: "M6",
-            instructor: "Dr. Name Name"
-        },
-        {
-            time: "12:20 PM",
-            title: "Digital Electronics Tutorial",
-            location: "CR2",
-            instructor: "Dr. Name Name"
-        },
-    ]
+            setPeriods(day!=="fri" ? tables[currentTable].content[day] : [])
+        }
+    },[tables])
 
     return (
         <View style={styles.pageContainer}>
@@ -36,18 +36,20 @@ export default function HomeScreen({navigation}) {
             <View style={{width:"100%",marginTop:10,paddingHorizontal:20}}>
                 <View style={{width:"100%",height:2.5,backgroundColor:"black"}}></View>
             </View>
-            <ScrollView style={{width:"100%"}} contentContainerStyle={{alignItems:"center",gap:20,padding:20}}>
+            <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {
-                periods.map((period,index) =>
-                <View key={`period-${index}`} style={{backgroundColor:"rgb(245,245,245)",padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5}}>
+                periods.length ? periods.map((period,index) =>
+                <View key={`period-${index}`} style={{backgroundColor:"#E6FFE6",padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5}}>
                     <Text style={{fontSize:25}}>{period.time}</Text>
-                    <Text style={{fontSize:25,marginBottom:20,textAlign:"center"}}>{period.title}</Text>
-                    <View style={{flexDirection:"row",justifyContent:"space-between",width:"100%"}}>
-                        <Text style={{fontSize:20,color:"dimgray"}}>At: {period.location}</Text>
-                        <Text style={{fontSize:20,color:"dimgray"}}>By: {period.instructor}</Text>
+                    <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
+                    <View style={{flexDirection:"column",width:"100%"}}>
+                        <Text style={{fontSize:20,color:"#647864",textTransform:"capitalize"}}>At: {period.location}</Text>
+                        <Text style={{fontSize:20,color:"#87A087",textTransform:"capitalize"}}>By: {period.instructor}</Text>
                     </View>
                 </View>
                 )
+                :
+                <Text style={{fontSize:40}}>No Periods Today.</Text>
             }
             </ScrollView>
             
