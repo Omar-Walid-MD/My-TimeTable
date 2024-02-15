@@ -71,12 +71,12 @@ export const playerDataSlice = createSlice({
 
       //updateTables
       .addCase(updateTables.fulfilled, (state, action) => {
-        state.tables = action.payload
+        state.tables = action.payload;
       })
 
       //setCurrentTable
       .addCase(setCurrentTable.fulfilled, (state, action) => {
-        state.currentTable = action.payload
+        state.currentTable = action.payload;
       })
     },
 });

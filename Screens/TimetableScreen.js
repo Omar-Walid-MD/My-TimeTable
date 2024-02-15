@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView, Modal, TextInput } from 'react-native';
-import { MaterialCommunityIcons, Octicons } from 'react-native-vector-icons'
+import { MaterialCommunityIcons, Octicons, Feather } from 'react-native-vector-icons'
 import styles from '../styles';
 import NavBar from '../Components/Navbar';
 import { useEffect, useState } from 'react';
@@ -8,12 +8,17 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 import { useDispatch, useSelector } from 'react-redux';
 import store from '../Store/store';
 import { setCurrentTable, updateTables } from '../Store/slice/slice';
+import { addPeriodNotification, cancelAllNotifications, cancelNotification, editPeriodNotification, periodNotification } from '../notifications';
+import LoadingOverlay from '../Components/LoadingOverlay';
+import * as FileSystem from 'expo-file-system';
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function TimetableScreen({navigation}) {
 
     const s = 150;
     const dispatch = useDispatch();
-
+    const dayStrings = ["sat","sun","mon","tue","wed","thu"]
 
     const tableTemplate = {
         name: "Untitled",
@@ -40,7 +45,7 @@ export default function TimetableScreen({navigation}) {
         }
     }
 
-    const [tables,setTables] = useState(useSelector(store => store.tables.tables) || [JSON.parse(JSON.stringify(tableTemplate))]);
+    const tables = useSelector(store => store.tables.tables) || [JSON.parse(JSON.stringify(tableTemplate))];
     const [tableIndex,setTableIndex] = useState(0);
     const currentTable = useSelector(store => store.tables.currentTable);
 
@@ -61,7 +66,11 @@ export default function TimetableScreen({navigation}) {
     const [periodModalForm,setPeriodModalForm] = useState("add");
 
     const [settingsModal,setSettingsModal] = useState(false);
+
+    const [isEditingTableTitle,setIsEditingTableTitle] = useState(false);
     const [tableTitleEdit,setTableTitleEdit] = useState(false);
+
+    const [newTableModal,setNewTableModal] = useState(false);
 
     const [fromTimePicker,setFromTimePicker] = useState(false);
     const [toTimePicker,setToTimePicker] = useState(false);
@@ -74,6 +83,8 @@ export default function TimetableScreen({navigation}) {
 
     const [suggestionBoxes,setSuggestionBoxes] = useState({titles:false});
 
+    const [loading,setLoading] = useState(false);
+
     function getSuggestions(inputText,suggestionsList)
     {
         return suggestionsList.filter((suggestion) => inputText==="" || (suggestion.toLowerCase().includes(inputText.toLowerCase()) && suggestion !== inputText));
@@ -84,102 +95,214 @@ export default function TimetableScreen({navigation}) {
         setPeriodInForm({...periodInForm,[property]: text})
     }
 
-    function addPeriod()
+    function resetPeriodForm()
     {
-        if(periodInForm.title)
+        setPeriodInForm({
+            index: 0,
+            title: "",
+            from: "",
+            to: "",
+            location: "",
+            instructor: "",
+            day: 0
+        });
+    }
+
+    async function addPeriod()
+    {
+        if(periodInForm.title && periodInForm.from && periodInForm.to)
         {
-            setPeriodInForm({...periodInForm,index:tables[tableIndex].content[dayToAdd].length});
-            setTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:[...table.content[dayToAdd],periodInForm]}    } : table));
-            setPeriodInForm({
-                index: 0,
-                title: "",
-                from: "",
-                to: "",
-                location: "",
-                instructor: ""
-            });
+            // setLoading(true);
+            const newPeriod = {
+                ...periodInForm,
+                title: periodInForm.title.trim(),
+                location: periodInForm.location.trim(),
+                instructor: periodInForm.instructor.trim(),
+                index:tables[tableIndex].content[dayToAdd].length,
+                day: dayStrings.indexOf(dayToAdd)
+            };
+            newPeriod.notifId = await addPeriodNotification(newPeriod);
+
+            dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:[...table.content[dayToAdd],newPeriod]}    } : table)));
+            resetPeriodForm();
             setDayToAdd();
             setPeriodModal(false);
+            setLoading(false);
+
         }
     }
 
-    function editPeriod()
+    async function editPeriod()
     {
-        if(periodInForm.title)
+        if(periodInForm.title && periodInForm.from && periodInForm.to)
         {
-            setTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:table.content[dayToAdd].map((p,i) => i===periodInForm.index ? periodInForm : p)}    } : table));
-            setPeriodInForm({
-                index: 0,
-                title: "",
-                from: "",
-                to: "",
-                location: "",
-                instructor: ""
-            });
+            setLoading(true);
+            const editedPeriod = {
+                ...periodInForm,
+                title: periodInForm.title.trim(),
+                location: periodInForm.location.trim(),
+                instructor: periodInForm.instructor.trim()
+            };
+            editedPeriod.notifId = await editPeriodNotification(editedPeriod);
+
+            dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:table.content[dayToAdd].map((p,i) => i===periodInForm.index ? editedPeriod : p)}    } : table)));
+            resetPeriodForm();
             setDayToAdd();
             setPeriodModal(false);
+            setLoading(false);
         }
     }
 
     function deletePeriod(period)
     {
-        setTables(tables.map((table,index)=>index===tableIndex ?   {...table,content: {...table.content,[period.day]:table.content[period.day].filter((p,i)=>i!==period.index)} } : table));
+        setLoading(true);
+        cancelNotification(period.notifId);
+        dispatch(updateTables(tables.map((table,index)=>index===tableIndex ?   {...table,content: {...table.content,[dayStrings[period.day]]:table.content[dayStrings[period.day]].filter((p,i)=>i!==period.index)} } : table)));
         setPeriodToView(undefined);
+        setLoading(false);
+    }
+
+    function addNewTable()
+    {
+        dispatch(updateTables([...tables,{...JSON.parse(JSON.stringify(tableTemplate)),name:tableTitleEdit}]));
     }
 
     function resetTable()
     {
-        setTables(tables.map((table,index)=>index===tableIndex ? JSON.parse(JSON.stringify(tableTemplate)) : table))
+        setLoading(true);
+        dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? JSON.parse(JSON.stringify(tableTemplate)) : table)));
+        if(tableIndex===currentTable)
+        {
+            cancelAllNotifications();
+        }
+        setLoading(false);
     }
 
     function deleteTable()
     {
         if(tables.length>1)
         {
+            setLoading(true);
             setSettingsModal(false);
-            setTables(tables.filter((table,index)=>index!==tableIndex));
+            dispatch(updateTables(tables.filter((table,index)=>index!==tableIndex)));
 
             let newIndex = tableIndex>0 ? tableIndex-1 : tableIndex+1;
             if(tableIndex===currentTable) dispatch(setCurrentTable(newIndex));
             setTableIndex(newIndex);
+
+            cancelAllNotifications();
+            addTableNotifications(newIndex);
+            setLoading(false);
         }
+    }
+
+    function handleCurrentTable(newTableIndex)
+    {
+        setLoading(true);
+        cancelAllNotifications();
+        dispatch(setCurrentTable(newTableIndex));
+        addTableNotifications(newTableIndex);
+        setLoading(false);
+    }
+
+    function getTimeString(hourString)
+    {
+        if(!hourString) return "00:00";
+
+        let h = parseInt(hourString.split(":")[0]);
+        let m = parseInt(hourString.split(":")[1]);
+        let t = h < 12 ? "AM" : "PM";
+        
+        if(t==="AM")
+        {
+            if(h===0) h = 12;
+        }
+        else
+        {
+            if(h!==12) h %= 12;
+        }
+
+        return `${h }:${m<10 ? "0"+m : m} ${t}`;
+    }
+
+    function addTableNotifications(tableIndex)
+    {
+        let targetTable = tables[tableIndex];
+        Object.keys(targetTable.content).forEach((day)=>{
+                
+            targetTable.content[day].forEach(async (period)=>{
+                period.notifId = await addPeriodNotification(period);
+            });
+        });
+        dispatch(updateTables(prevTables => prevTables.map((t,i) => i===tableIndex ? targetTable : t)));
+    }
+
+    async function exportTable()
+    {
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!permissions.granted) {
+            return;
+        }
+
+        try {
+            let exportedTable = JSON.parse(JSON.stringify(tables[tableIndex]));
+            Object.keys(exportedTable.content).forEach((day)=>{
+                exportedTable.content[day] = exportedTable.content[day].map((period) => ({...period,notifId:""}));
+            });
+
+            let fileUri = permissions.directoryUri;
+            let fileName = `${exportedTable.name}-table.json`;
+            
+            await FileSystem.StorageAccessFramework.createFileAsync(fileUri,fileName,"application/json").then(async (newUri)=>{
+                let n = await FileSystem.StorageAccessFramework.writeAsStringAsync(newUri, JSON.stringify(exportedTable));
+            })
+        } catch (e) {
+            throw new Error(e);
+        }
+
+        setSettingsModal(false);
+    }
+
+    async function importTable()
+    {
+        let file = await DocumentPicker.getDocumentAsync({
+            copyToCacheDirectory:true
+        });
+        // console.log(file.assets[0])
+        let fileContent = await FileSystem.readAsStringAsync(file.assets[0].uri);
+        let importedTable = JSON.parse(fileContent);
+        dispatch(updateTables([...tables,importedTable]));
+        setNewTableModal(false);
     }
 
 
 
-    useEffect(()=>{
-        let tempExistingOptions = {titles:[],instructors:[],locations:[]};
-        tables.forEach((table)=>{
+    // useEffect(()=>{
+    //     let tempExistingOptions = {titles:[],instructors:[],locations:[]};
+    //     tables.forEach((table)=>{
             
-            Object.keys(table.content).forEach((day)=>{
+    //         Object.keys(table.content).forEach((day)=>{
                 
-                table.content[day].forEach((period)=>{
-                    if(!tempExistingOptions.titles.includes(period.title) && period.title)
-                        tempExistingOptions.titles.push(period.title);
-                    if(!tempExistingOptions.instructors.includes(period.instructor) && period.instructor)
-                        tempExistingOptions.instructors.push(period.instructor);
-                    if(!tempExistingOptions.locations.includes(period.location) && period.location)
-                        tempExistingOptions.locations.push(period.location);
+    //             table.content[day].forEach((period)=>{
+    //                 if(!tempExistingOptions.titles.includes(period.title) && period.title)
+    //                     tempExistingOptions.titles.push(period.title);
+    //                 if(!tempExistingOptions.instructors.includes(period.instructor) && period.instructor)
+    //                     tempExistingOptions.instructors.push(period.instructor);
+    //                 if(!tempExistingOptions.locations.includes(period.location) && period.location)
+    //                     tempExistingOptions.locations.push(period.location);
 
-                })
-            })
-        })
-        setExistingOptions(tempExistingOptions);
-        
-        if(tables.length)
-        {
-            dispatch(updateTables(tables));
-            // console.log("updated");
-        }
-    },[tables])
+    //             });
+    //         });
+    //     });
+    //     setExistingOptions(tempExistingOptions);
+
+    // },[tables])
 
     return (
         <View style={styles.pageContainer}>
-            <NavBar navigation={navigation} />
+            <View style={{flexDirection:"row",width:"100%",paddingHorizontal:10,paddingBottom:20}}>
 
-            <View style={{flexDirection:"row",width:"100%"}}>
-
-                <ScrollView style={{width:"100%",padding:20}} contentContainerStyle={{flexDirection:"row",alignItems:"center",gap:20}} horizontal>
+                <ScrollView style={{width:"100%",padding:20,paddingBottom:4}} contentContainerStyle={{flexDirection:"row",flexGrow:1,paddingEnd:40,alignItems:"center",gap:20}} horizontal>
                 {
                     tables.map((table,index)=>
                     <View style={{flexDirection:"row",alignItems:"center",gap:20,...(tableIndex===index ? styles.tableTabActive : styles.tableTab)}} key={`table-${index}`}>
@@ -201,35 +324,41 @@ export default function TimetableScreen({navigation}) {
                     </View>
                     )
                 }
-                    <Pressable style={{backgroundColor:"#87A087",borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>setTables([...tables,JSON.parse(JSON.stringify(tableTemplate))])}>
+                    <Pressable style={{backgroundColor:"#87A087",borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>{setNewTableModal(true);setTableTitleEdit("Untitled");}}>
                         <Octicons name='plus' size={20} color="white" />
                     </Pressable>
 
                 </ScrollView>
             </View>
 
-            <View style={{flex:1}}>
-                <ScrollView contentContainerStyle={{flexGrow:1}}>
-                    <ScrollView horizontal contentContainerStyle={{flexGrow:1}}>
+            <View style={{flex:1,paddingHorizontal:10,paddingBottom:10}}>
+                <ScrollView horizontal contentContainerStyle={{flexDirection:"column",flexGrow:1}}>
+                    <View style={{flexDirection:"row"}}>
+                    {
+                        dayStrings.map((day)=>
+                        <View style={{width:s,alignItems:"center",paddingBottom:10}} key={`day-tab-${day}`}>
+                            <Text style={{fontSize:20,textTransform:"uppercase"}}>{day}</Text>
+                        </View>
+                        )
+                    }
+                    </View>
+                    <ScrollView contentContainerStyle={{flexGrow:1}}>
                         <View style={{flexDirection:"row"}}>
                         {
 
                             Object.keys(tables[tableIndex].content).map((day,i)=>
                             <View style={{width:s}} key={`table-item-${i}`}>
-                                <View style={{width:"100%",alignItems:"center",paddingBottom:10}}>
-                                    <Text style={{fontSize:20,textTransform:"uppercase"}}>{day}</Text>
-                                </View>
                                 <View style={{width:"100%"}}>
 
                                     {
                                         tables[tableIndex].content[day].map((period,j) =>
                                         <Pressable
                                         style={{width:"100%",alignItems:"center",justifyContent:"center",height:s,padding:2}}
-                                        onPress={()=>{setPeriodToView({...period,day:day,index:j});setDayToAdd(day);}}
+                                        onPress={()=>{setPeriodToView({...period,index:j});setDayToAdd(day);}}
                                         key={`table-period-${day}-${j}`}>
-                                            <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",backgroundColor:colors[i*2%colors.length + j%colors.length],borderRadius:5,shadowColor:"black",elevation:5}}>
+                                            <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",backgroundColor:colors[(i*2+j)%colors.length],borderRadius:5,shadowColor:"black",elevation:5}}>
                                                 <Text style={{textAlign:"center",fontSize:20}}>{period.title}</Text>
-                                                <Text style={{position:"absolute",top:0,left:0,padding:5}}>{period.from} - {period.to}</Text>
+                                                <Text style={{position:"absolute",top:0,left:0,padding:5}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
                                                 <Text style={{position:"absolute",bottom:0,left:0,padding:5}}>{period.location}</Text>
                                             </View>
                                         </Pressable>
@@ -257,8 +386,8 @@ export default function TimetableScreen({navigation}) {
                 <Pressable style={{position:"absolute",width:"100%",height:"100%",zIndex:-1}} onPress={()=>{setSuggestionBoxes({titles:false,locations:false,instructors:false});}}></Pressable>
                 <View style={{backgroundColor:"#F5FAF5",width:"100%",flexDirection:"row",justifyContent:"center",alignItems:"center",paddingTop:20}}>
                     <Text style={{fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"} Period</Text>
-                    <Pressable style={{position:"absolute",right:20,top:25,pointerEvents:"auto"}} onPress={()=>{setSuggestionBoxes({titles:false,locations:false,instructors:false});setPeriodModal(false)}}>
-                        <Text>Cancel</Text>
+                    <Pressable style={{position:"absolute",right:0,top:0,padding:5,margin:20,borderRadius:5,backgroundColor:"black",pointerEvents:"auto"}} onPress={()=>{setSuggestionBoxes({titles:false,locations:false,instructors:false});setPeriodModal(false);resetPeriodForm();}}>
+                        <Feather name="x" size={20} color="white" />
                     </Pressable>
                 </View>
                 <View style={{backgroundColor:"#F5FAF5",height:"100%",padding:50,gap:20,alignItems:"center"}}>
@@ -303,8 +432,8 @@ export default function TimetableScreen({navigation}) {
                             <TextInput 
                             style={styles.textInput}
                             placeholder='00:00'
-                            value={periodInForm.from}
-                            onChangeText={(text)=>handlePeriodForm(text,"from")}
+                            value={getTimeString(periodInForm.from)}
+                            // onChangeText={(text)=>handlePeriodForm(text,"from")}
                             onPressIn={()=>setFromTimePicker(true)}
                             />
                         </View>
@@ -314,8 +443,8 @@ export default function TimetableScreen({navigation}) {
                             <TextInput 
                             style={styles.textInput}
                             placeholder='00:00'
-                            value={periodInForm.to}
-                            onChangeText={(text)=>handlePeriodForm(text,"to")}
+                            value={getTimeString(periodInForm.to)}
+                            // onChangeText={(text)=>handlePeriodForm(text,"to")}
                             onPressIn={()=>setToTimePicker(true)}
                             />
                         </View>
@@ -399,6 +528,7 @@ export default function TimetableScreen({navigation}) {
                         <Text style={{color:"white",fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"}</Text>
                     </Pressable>
                 </View>
+                <LoadingOverlay visible={loading} />
             </Modal>
 
             <Modal visible={periodToView!==undefined} animationType='slide' transparent>
@@ -409,29 +539,30 @@ export default function TimetableScreen({navigation}) {
                             periodToView &&
 
                             <View style={{alignItems:"center",gap:10,marginBottom:50}}>
-                                <Text style={{fontSize:40}}>{periodToView.title}</Text>
-                                <Text style={{fontSize:25}}>{periodToView.from} - {periodToView.to}</Text>
-                                {periodToView.location && <Text style={{fontSize:25}}>At: {periodToView.location}</Text>}
-                                {periodToView.instructor && <Text style={{fontSize:25}}>By: {periodToView.instructor}</Text>}
+                                <Text style={{fontSize:15,color:"#87A087"}}>{getTimeString(periodToView.from)} - {getTimeString(periodToView.to)}</Text>
+                                <Text style={{fontSize:40,marginBottom:20}}>{periodToView.title}</Text>
+                                {periodToView.location && <Text style={{fontSize:20,color:"#647864",textTransform:"capitalize"}}>At: {periodToView.location}</Text>}
+                                {periodToView.instructor && <Text style={{fontSize:20,color:"#87A087",textTransform:"capitalize"}}>By: {periodToView.instructor}</Text>}
                             </View>
                         }
 
                         <View style={{flexDirection:"row",gap:100}}>
-                            <Pressable onPress={()=>deletePeriod(periodToView)}>
-                                <Text style={{fontSize:25,color:"rgb(200,0,0)"}}>Delete</Text>
+                            <Pressable style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"rgb(200,0,0)",justifyContent:"center",alignItems:"center"}} onPress={()=>deletePeriod(periodToView)}>
+                                <Text style={{fontSize:20,color:"rgb(200,0,0)"}}>Delete</Text>
                             </Pressable>
 
-                            <Pressable onPress={()=>{setPeriodModalForm("edit");setPeriodInForm(periodToView);setPeriodModal(true);setPeriodToView(undefined);}}>
-                                <Text style={{fontSize:25,color:"rgb(0,140,180)"}}>Edit</Text>
+                            <Pressable style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"rgb(0,140,180)",justifyContent:"center",alignItems:"center"}} onPress={()=>{setPeriodModalForm("edit");setPeriodInForm(periodToView);setPeriodModal(true);setPeriodToView(undefined);}}>
+                                <Text style={{fontSize:20,color:"rgb(0,140,180)"}}>Edit</Text>
                             </Pressable>
                         </View>
 
-                        <Pressable style={{position:"absolute",top:0,right:0,padding:20}} onPress={()=>setPeriodToView(undefined)}>
-                            <Text style={{fontSize:15}}>Close</Text>
+                        <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>setPeriodToView(undefined)}>
+                            <Feather name="x" size={20} color="white" />
                         </Pressable>
 
                     </View>
                 </View>
+                <LoadingOverlay visible={loading} />
             </Modal>
 
             <Modal visible={settingsModal} animationType='slide' transparent>
@@ -440,7 +571,7 @@ export default function TimetableScreen({navigation}) {
 
                         <View style={{marginBottom:50}}>
                         {
-                            tableTitleEdit!==false ?
+                            isEditingTableTitle ?
                             <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
                                 <TextInput
                                 style={styles.textInput}
@@ -449,49 +580,105 @@ export default function TimetableScreen({navigation}) {
                                 />
                                 <Pressable
                                 style={{backgroundColor:"black",borderRadius:5,padding:5}}
-                                onPress={()=>{setTables(tables.map((table,index)=>index===tableIndex ? {...table,name:tableTitleEdit} : table));setTableTitleEdit(false)}}>
-                                    <Text style={{color:"white",fontSize:20}}>Edit</Text>
+                                onPress={()=>{dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,name:tableTitleEdit} : table)));setTableTitleEdit("");setIsEditingTableTitle(false);}}>
+                                    <Text style={{color:"white",fontSize:20}}>Confirm</Text>
                                 </Pressable>
                             </View>
                             :
                             <>
                                 <Text style={{fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tables[tableIndex].name}</Text>
-                                <Pressable style={{position:"absolute",bottom:-12,right:-10,backgroundColor:"black",borderRadius:20,padding:5}} onPress={()=>setTableTitleEdit(tables[tableIndex].name)}>
+                                <Pressable style={{position:"absolute",bottom:-12,right:-10,backgroundColor:"black",borderRadius:20,padding:5}} onPress={()=>{setIsEditingTableTitle(true);setTableTitleEdit(tables[tableIndex].name);}}>
                                     <MaterialCommunityIcons name='pencil' size={15} color="white" />
                                 </Pressable>
                             </>
                         }
                         </View>
 
-                        <View style={{flexDirection:"row",gap:20,alignItems:"center"}}>
+                        <View style={{flexDirection:"column",gap:20,alignItems:"center"}}>
                             {
                                 tables.length > 1 &&
-                                <Pressable onPress={()=>deleteTable()}>
+                                <Pressable onPress={()=>deleteTable()} style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"rgb(200,0,0)",justifyContent:"center",alignItems:"center"}}>
                                     <Text style={{fontSize:20,color:"rgb(200,0,0)"}}>Delete</Text>
                                 </Pressable>
                             }
                             {
                                 tableIndex !== currentTable &&
-                                <Pressable onPress={()=>dispatch(setCurrentTable(tableIndex))}>
+                                <Pressable onPress={()=>handleCurrentTable(tableIndex)}>
                                     <Text style={{fontSize:20,color:"white",backgroundColor:"#239623",padding:5,borderRadius:5}}>Set Current</Text>
                                 </Pressable>
                             }
-                            <Pressable onPress={()=>resetTable()}>
+                            <Pressable style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"rgb(0,140,180)",justifyContent:"center",alignItems:"center"}} onPress={()=>resetTable()}>
                                 <Text style={{fontSize:20,color:"rgb(0,140,180)"}}>Reset</Text>
+                            </Pressable>
+
+                            <Pressable style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"#239623",justifyContent:"center",alignItems:"center"}} onPress={()=>exportTable()}>
+                                <Text style={{fontSize:20,color:"#239623"}}>Export</Text>
                             </Pressable>
                         </View>
 
-                        <Pressable style={{position:"absolute",top:0,right:0,padding:20}} onPress={()=>{setSettingsModal(false); setTableTitleEdit(false);}}>
-                            <Text style={{fontSize:15}}>Close</Text>
+                        <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setSettingsModal(false);setTableTitleEdit("");setIsEditingTableTitle(false);}}>
+                            <Feather name="x" size={20} color="white" />
                         </Pressable>
 
                     </View>
                 </View>
+                <LoadingOverlay visible={loading} />
+            </Modal>
+
+            <Modal visible={newTableModal} animationType='slide' transparent>
+                <View style={{width:"100%",flex:1,alignItems:"center",justifyContent:"center",backgroundColor:"rgba(0,0,0,0.5)"}}>
+                    <View style={{width:"90%",backgroundColor:"#F5FAF5",padding:20,paddingTop:40,borderRadius:10,alignItems:"center"}}>
+
+                        <View style={{marginBottom:50}}>
+                        {
+                            isEditingTableTitle ?
+                            <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
+                                <TextInput
+                                style={styles.textInput}
+                                value={tableTitleEdit}
+                                onChangeText={(text)=>setTableTitleEdit(text)}
+                                />
+                                <Pressable
+                                style={{backgroundColor:"black",borderRadius:5,padding:5}}
+                                onPress={()=>{setIsEditingTableTitle(false);}}>
+                                    <Text style={{color:"white",fontSize:20}}>Confirm</Text>
+                                </Pressable>
+                            </View>
+                            :
+                            <>
+                                <Text style={{fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tableTitleEdit}</Text>
+                                <Pressable style={{position:"absolute",bottom:-12,right:-10,backgroundColor:"black",borderRadius:20,padding:5}} onPress={()=>{setIsEditingTableTitle(true);}}>
+                                    <MaterialCommunityIcons name='pencil' size={15} color="white" />
+                                </Pressable>
+                            </>
+                        }
+                        </View>
+
+                        <View style={{flexDirection:"column",gap:20,alignItems:"center"}}>
+                            <Pressable style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"rgb(0,140,180)",justifyContent:"center",alignItems:"center"}} onPress={()=>{addNewTable();setNewTableModal(false);}}>
+                                <Text style={{fontSize:20,color:"rgb(0,140,180)"}}>Add</Text>
+                            </Pressable>
+                            <View>
+                                <Text>or</Text>
+                            </View>
+                            <Pressable style={{padding:5,borderRadius:5,borderWidth:2,borderColor:"#239623",justifyContent:"center",alignItems:"center"}} onPress={()=>importTable()}>
+                                <Text style={{fontSize:20,color:"#239623"}}>Import</Text>
+                            </Pressable>
+                        </View>
+
+                        <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setNewTableModal(false);setIsEditingTableTitle(false);}}>
+                            <Feather name="x" size={20} color="white" />
+                        </Pressable>
+
+                    </View>
+                </View>
+                <LoadingOverlay visible={loading} />
             </Modal>
 
             <DateTimePicker
                 isVisible={fromTimePicker}
                 mode="time"
+                accentColor='red'
                 onConfirm={(time)=>{setFromTimePicker(false);setPeriodInForm({...periodInForm,from:time.toTimeString().slice(0,5)})}}
                 onCancel={()=>setFromTimePicker(false)}
             />
@@ -499,10 +686,10 @@ export default function TimetableScreen({navigation}) {
             <DateTimePicker
                 isVisible={toTimePicker}
                 mode="time"
+                accentColor='red'
                 onConfirm={(time)=>{setToTimePicker(false);setPeriodInForm({...periodInForm,to:time.toTimeString().slice(0,5)})}}
                 onCancel={()=>setToTimePicker(false)}
             />
-
             <StatusBar style="auto"/>
         </View>
     );

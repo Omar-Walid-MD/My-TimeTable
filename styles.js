@@ -10,7 +10,8 @@ const styles = StyleSheet.create({
 
   pageContainer: {
     alignItems: "center",
-    direction:"ltr",
+    // direction:"ltr",
+    writingDirection:"ltr",
     width: "100%",
     flex: 1,
     backgroundColor: "#F5FAF5"
