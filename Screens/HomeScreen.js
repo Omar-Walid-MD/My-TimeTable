@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons'
-import styles from '../styles';
+import themes from '../themes';
 import NavBar from '../Components/Navbar';
 import { useSelector } from 'react-redux';
 import store from '../Store/store';
@@ -12,6 +12,10 @@ import * as DocumentPicker from 'expo-document-picker';
 
 
 export default function HomeScreen({navigation}) {
+
+    
+    const styles = useSelector(store => store.theme.styles);
+    const currentTheme = useSelector(store => store.theme.theme);
 
     const tables = useSelector(store => store.tables.tables);
     const currentTable = useSelector(store => store.tables.currentTable);
@@ -66,40 +70,6 @@ export default function HomeScreen({navigation}) {
         return null;
     }
     
-    async function chooseFile()
-    {
-        console.log("opened")
-        let file = await DocumentPicker.getDocumentAsync({
-            copyToCacheDirectory:true
-        });
-        console.log(file)
-    }
-
-    async function saveFile()
-    {
-        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-        if (!permissions.granted) {
-            return;
-        }
-
-        const base64Data = 'my base 64 data';
-
-        try {
-            let fileUri = permissions.directoryUri;
-            let fileName = "text.txt"
-            
-            await FileSystem.StorageAccessFramework.createFileAsync(fileUri,fileName,"text/plain").then(async (newUri)=>{
-                let n = await FileSystem.StorageAccessFramework.writeAsStringAsync(newUri, "Hello World");
-                console.log(newUri);
-                console.log("done");
-
-            })
-        } catch (e) {
-            throw new Error(e);
-        }
-
-    }
-    
     useEffect(()=>{
         if(tables)
         {
@@ -111,28 +81,25 @@ export default function HomeScreen({navigation}) {
 
     return (
         <View style={styles.pageContainer}>
-            <Pressable onPress={()=>saveFile()}>
-                <Text>Choose</Text>
-            </Pressable>
-            <Text style={{fontSize:20,marginTop:30,marginBottom:15}}>Today</Text>
+            <Text style={{...styles.text,fontSize:20,marginTop:30,marginBottom:15}}>Today</Text>
             <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {
                 periods.length ? periods.map((period,index) =>
-                <View key={`period-${index}`} style={{backgroundColor:"#E6FFE6",padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5,"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0,borderColor:"#647864"}}>
-                    <Text style={{fontSize:15,color:"#87A087"}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                    <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
+                <View key={`period-${index}`} style={{backgroundColor:themes[currentTheme]["period-home"],padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5,"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0,borderColor:themes[currentTheme]["faint-2"]}}>
+                    <Text style={{fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
+                    <Text style={{...styles.text,fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
                     <View style={{flexDirection:"column",width:"100%"}}>
-                        {period.location && <Text style={{fontSize:20,color:"#647864",textTransform:"capitalize"}}>At: {period.location}</Text>}
-                        {period.instructor && <Text style={{fontSize:20,color:"#87A087",textTransform:"capitalize"}}>By: {period.instructor}</Text>}
+                        {period.location && <Text style={{fontSize:20,color:themes[currentTheme]["faint-2"],textTransform:"capitalize"}}>At: {period.location}</Text>}
+                        {period.instructor && <Text style={{fontSize:20,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
                         
                     </View>
-                    <View style={{position:"absolute",top:0,left:0,margin:5,borderRadius:5,backgroundColor:"#87A087",height:25,aspectRatio:1,alignContent:"center",alignItems:"center"}}>
-                        <Text style={{color:"#E6FFE6",fontWeight:"bold"}}>{index+1}</Text>
+                    <View style={{position:"absolute",top:0,left:0,margin:5,borderRadius:5,backgroundColor:themes[currentTheme]["faint"],height:25,aspectRatio:1,alignContent:"center",alignItems:"center"}}>
+                        <Text style={{color:themes[currentTheme]["period-home"],fontWeight:"bold"}}>{index+1}</Text>
                     </View>
                 </View>
                 )
                 :
-                <Text style={{fontSize:40,textAlign:"center"}}>No Periods Today.</Text>
+                <Text style={{...styles.text,fontSize:40,textAlign:"center"}}>No Periods Today.</Text>
             }
             </ScrollView>
             

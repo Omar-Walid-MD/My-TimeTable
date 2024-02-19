@@ -35,7 +35,7 @@ export const setCurrentTable = createAsyncThunk(
     return currentTable;
 });
 
-export const playerDataSlice = createSlice({
+export const tablesSlice = createSlice({
     name: "tables",
     initialState,
     reducers: {},
@@ -81,4 +81,4 @@ export const playerDataSlice = createSlice({
     },
 });
 
-export default playerDataSlice.reducer;
+export default tablesSlice.reducer;

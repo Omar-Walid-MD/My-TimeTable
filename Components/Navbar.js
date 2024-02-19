@@ -1,10 +1,35 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView, Animated } from 'react-native';
-import { MaterialCommunityIcons } from 'react-native-vector-icons'
+import { MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons'
 import styles from '../styles';
+import themes from '../themes';
 import { useRoute } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
 
 export default function NavBar({state, descriptors, navigation, position}) {
+
+    const styles = useSelector(store => store.theme.styles);
+    const currentTheme = useSelector(store => store.theme.theme);
+
+    const buttons = {
+        "Home": {
+            icon: "home",
+            size: 40,
+            style: {}
+        },
+        "Timetable": {
+            icon: "timetable",
+            size: 35,
+            style: {paddingTop:5,alignItems:"center"}
+        },
+        "Settings": {
+            icon: "cog",
+            size: 40,
+            style: {alignItems:"flex-end"}
+        }
+    }
+
 
     return (
 
@@ -21,29 +46,23 @@ export default function NavBar({state, descriptors, navigation, position}) {
                 const isFocused = state.index === index;
 
                 const onPress = () => {
-                const event = navigation.emit({
-                    type: 'tabPress',
-                    target: route.key,
-                    canPreventDefault: true,
-                });
+                    const event = navigation.emit({
+                        type: 'tabPress',
+                        target: route.key,
+                        canPreventDefault: true,
+                    });
 
-                if (!isFocused && !event.defaultPrevented) {
-                    navigation.navigate(route.name, route.params);
-                }
+                    if (!isFocused && !event.defaultPrevented) {
+                        navigation.navigate(route.name, route.params);
+                    }
                 };
 
                 const onLongPress = () => {
-                navigation.emit({
-                    type: 'tabLongPress',
-                    target: route.key,
-                });
-                };
-
-                const inputRange = state.routes.map((_, i) => i);
-                const opacity = position.interpolate({
-                inputRange,
-                outputRange: inputRange.map(i => (i === index ? 1 : 0)),
-                });
+                    navigation.emit({
+                        type: 'tabLongPress',
+                        target: route.key,
+                    });
+                };                
 
                 return (
                 <Pressable
@@ -53,20 +72,20 @@ export default function NavBar({state, descriptors, navigation, position}) {
                 testID={options.tabBarTestID}
                 onPress={onPress}
                 onLongPress={onLongPress}
-                style={{paddingTop: index===1 ? 5 : 0}}
+                style={{...buttons[label].style,flexGrow:1}}
                 key={`tab-button-${index}`}
                 >
-                <MaterialCommunityIcons name={label==="Home" ? "home" : "timetable"} size={index===1 ? 35 : 40} color={state.index===index ? "#C8FFC8" : "#87A087"} />
+                <MaterialCommunityIcons name={buttons[label].icon} size={buttons[label].size} color={state.index===index ? themes[currentTheme]["selected"] : themes[currentTheme]["faint"]} />
             </Pressable>
            
                 );
             })}
             {/* <Pressable onPress={()=>navigation.navigate("Home")}>
-                <MaterialCommunityIcons name='home' size={40} color={route.name==="Home" ? "#C8FFC8" : "#87A087"} />
+                <MaterialCommunityIcons name='home' size={40} color={route.name==="Home" ? "#C8FFC8" : themes[currentTheme]["faint"]} />
             </Pressable>
            
             <Pressable style={{paddingTop:5}} onPress={()=>navigation.navigate("Timetable")}>
-                <MaterialCommunityIcons name='timetable' size={35} color={route.name==="Timetable" ? "#C8FFC8" : "#87A087"} />
+                <MaterialCommunityIcons name='timetable' size={35} color={route.name==="Timetable" ? "#C8FFC8" : themes[currentTheme]["faint"]} />
             </Pressable> */}
 
         </View>

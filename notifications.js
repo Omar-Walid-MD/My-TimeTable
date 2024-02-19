@@ -1,6 +1,5 @@
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
 import * as Device from 'expo-device';
-
 // const dayStrings = ["sun","mon","tue","wed","thu","fri","sat"];
 
 export async function registerForPushNotificationsAsync() {
@@ -66,7 +65,7 @@ export async function addPeriodNotification(period)
 			repeats: true
 		}
     });
-	console.log("added notif");
+	console.log("added notif"); 
 	return notifId.toString();
 }
 

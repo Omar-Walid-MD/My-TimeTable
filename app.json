@@ -31,6 +31,9 @@
       "eas": {
         "projectId": "3877a72b-c672-412e-8b07-a1a63ef9dcf0"
       }
-    }
+    },
+    "plugins":[
+      "./plugins/custom-android-styles.js"
+    ]
   }
 }
