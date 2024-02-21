@@ -13,6 +13,7 @@ import LoadingOverlay from '../Components/LoadingOverlay';
 import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as DocumentPicker from 'expo-document-picker';
+import SelectDropdown from 'react-native-select-dropdown'
 
 export default function TimetableScreen({navigation}) {
 
@@ -84,12 +85,14 @@ export default function TimetableScreen({navigation}) {
         locations: []
     });
 
-    const [suggestionBoxes,setSuggestionBoxes] = useState({titles:false});
+    const [suggestionKey,setSuggestionKey] = useState(null);
 
     const [loading,setLoading] = useState(false);
 
-    function getSuggestions(inputText,suggestionsList)
+    function getSuggestions(periodInForm,existingOptions,suggestionKey)
     {
+        let inputText = periodInForm[suggestionKey];
+        let suggestionsList = existingOptions[suggestionKey+"s"]
         return suggestionsList.filter((suggestion) => inputText==="" || (suggestion.toLowerCase().includes(inputText.toLowerCase()) && suggestion !== inputText));
     }
 
@@ -363,9 +366,9 @@ export default function TimetableScreen({navigation}) {
                                         onPress={()=>{setPeriodToView({...period,index:j});setDayToAdd(day);}}
                                         key={`table-period-${day}-${j}`}>
                                             <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",backgroundColor:colors[(i*2+j)%colors.length],borderRadius:5,shadowColor:"black",elevation:5}}>
-                                                <Text style={{...styles.text,textAlign:"center",fontSize:20}}>{period.title}</Text>
-                                                <Text style={{...styles.text,position:"absolute",top:0,left:0,padding:5}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                                                <Text style={{...styles.text,position:"absolute",bottom:0,left:0,padding:5}}>{period.location}</Text>
+                                                <Text style={{...styles.text,textAlign:"center",fontSize:15,fontWeight:"bold",margin:5}} numberOfLines={3}>{period.title}</Text>
+                                                <Text style={{...styles.text,position:"absolute",top:0,left:0,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
+                                                <Text style={{...styles.text,position:"absolute",bottom:0,left:0,padding:5,fontSize:10}}>{period.location}</Text>
                                             </View>
                                         </Pressable>
                                         )
@@ -389,149 +392,115 @@ export default function TimetableScreen({navigation}) {
             </View>
 
             <Modal visible={periodModal} animationType='slide'>
-            <ScrollView contentContainerStyle={{flexGrow:1}}>
-                <View style={{backgroundColor:themes[currentTheme]["bg"],width:"100%",flexDirection:"row",justifyContent:"center",alignItems:"center",paddingTop:20}}>
-                    <Text style={{...styles.text,fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"} Period</Text>
-                    <Pressable style={{position:"absolute",right:0,top:0,padding:5,margin:20,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setSuggestionBoxes({titles:false,locations:false,instructors:false});setPeriodModal(false);resetPeriodForm();}}>
-                        <Feather name="x" size={20} color="white" />
-                    </Pressable>
-                </View>
-                <View style={{backgroundColor:themes[currentTheme]["bg"],height:"100%",padding:50,gap:20,alignItems:"center"}}>
-                    <View style={{gap:10,width:"100%"}}>
-                        <Text style={{...styles.text,fontSize:20}}>Title:</Text>
-                        <TextInput style={styles.textInput} value={periodInForm.title} onChangeText={(text)=>handlePeriodForm(text,"title")}
-                        onFocus={()=>setSuggestionBoxes({titles:true,locations:false,instructors:false})}
-                        />
-                        {
-                            suggestionBoxes.titles && getSuggestions(periodInForm.title,existingOptions.titles).length  ?
-                            <>
-                                <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-                                    <Text style={styles.text}>Suggestions:</Text>
-                                    <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionBoxes({...suggestionBoxes,titles:false})}>
-                                        <Feather name="x" size={15} color="white" />
-                                    </Pressable>
-                                </View>
-                                <View style={{maxHeight:100,width:"100%",backgroundColor:"white",borderWidth:2,borderColor:"black",borderRadius:5,padding:10}}>
-                                    <ScrollView >
-                                    {
-                                        getSuggestions(periodInForm.title,existingOptions.titles).map((titleSuggestion,index)=>
-                                        <View style={{width:"100%"}} key={`sug-title-${index}`}>
-                                            <Pressable style={{width:"100%",padding:2,pointerEvents:"auto"}} onPress={()=>setPeriodInForm({...periodInForm,title:titleSuggestion})}>
-                                                <Text>{titleSuggestion}</Text>
-                                            </Pressable>
-                                        </View>
-                                        )
-                                    }
-                                    </ScrollView>
-                                </View>
-                            </>
-                            :
-                            null
-                        }
+                <ScrollView contentContainerStyle={{flexGrow:1}}>
+                    <View style={{backgroundColor:themes[currentTheme]["bg"],width:"100%",flexDirection:"row",justifyContent:"center",alignItems:"center",paddingTop:20}}>
+                        <Text style={{...styles.text,fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"} Period</Text>
+                        <Pressable style={{position:"absolute",right:0,top:0,padding:5,margin:20,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setPeriodModal(false);resetPeriodForm();}}>
+                            <Feather name="x" size={20} color="white" />
+                        </Pressable>
                     </View>
+                    <View style={{backgroundColor:themes[currentTheme]["bg"],height:"100%",padding:50,gap:20,alignItems:"center"}}>
+                        <View style={{gap:10,width:"100%"}}>
+                            <Text style={{...styles.text,fontSize:20}}>Title:</Text>
+                            <TextInput style={styles.textInput} value={periodInForm.title} onChangeText={(text)=>handlePeriodForm(text,"title")}/>
 
-                    <View style={{width:"100%",flexDirection:"row",justifyContent:"space-between"}}>
-                        <View style={{gap:10,width:"45%"}}>
-                            <Text style={{...styles.text,fontSize:20}}>From:</Text>
-                            <TextInput 
-                            style={styles.textInput}
-                            placeholder='00:00'
-                            value={getTimeString(periodInForm.from)}
-                            // onChangeText={(text)=>handlePeriodForm(text,"from")}
-                            onPressIn={()=>setFromTimePicker(true)}
-                            />
+                            {
+                                getSuggestions(periodInForm,existingOptions,"title").length ?
+                                <Pressable style={{position:"absolute",top:"56%",right:10}} onPress={()=>setSuggestionKey("title")}>
+                                    <Text style={{fontSize:12.5,...styles.colorPrimary}}>Suggestions</Text>
+                                </Pressable>
+                                :
+                                null
+                            }
+                            
                         </View>
 
-                        <View style={{gap:10,width:"45%"}}>
-                            <Text style={{...styles.text,fontSize:20}}>To:</Text>
-                            <TextInput 
-                            style={styles.textInput}
-                            placeholder='00:00'
-                            value={getTimeString(periodInForm.to)}
-                            // onChangeText={(text)=>handlePeriodForm(text,"to")}
-                            onPressIn={()=>setToTimePicker(true)}
-                            />
-                        </View>
-                    </View>
+                        <View style={{width:"100%",flexDirection:"row",justifyContent:"space-between"}}>
+                            <View style={{gap:10,width:"45%"}}>
+                                <Text style={{...styles.text,fontSize:20}}>From:</Text>
+                                <TextInput 
+                                style={styles.textInput}
+                                placeholder='00:00'
+                                value={getTimeString(periodInForm.from)}
+                                // onChangeText={(text)=>handlePeriodForm(text,"from")}
+                                onPressIn={()=>setFromTimePicker(true)}
+                                />
+                            </View>
 
-                    <View style={{gap:10,width:"100%"}}>
-                        <Text style={{...styles.text,fontSize:20}}>Location (optional):</Text>
-                        <TextInput style={{...styles.textInput}} value={periodInForm.location} onChangeText={(text)=>handlePeriodForm(text,"location")}
-                        onFocus={()=>setSuggestionBoxes({...suggestionBoxes,locations:true})}
+                            <View style={{gap:10,width:"45%"}}>
+                                <Text style={{...styles.text,fontSize:20}}>To:</Text>
+                                <TextInput 
+                                style={styles.textInput}
+                                placeholder='00:00'
+                                value={getTimeString(periodInForm.to)}
+                                // onChangeText={(text)=>handlePeriodForm(text,"to")}
+                                onPressIn={()=>setToTimePicker(true)}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={{gap:10,width:"100%"}}>
+                            <Text style={{...styles.text,fontSize:20}}>Location (optional):</Text>
+                            <TextInput style={styles.textInput} value={periodInForm.location} onChangeText={(text)=>handlePeriodForm(text,"location")}/>
+                            {
+                                getSuggestions(periodInForm,existingOptions,"location").length ?
+                                <Pressable style={{position:"absolute",top:"56%",right:10}} onPress={()=>setSuggestionKey("location")}>
+                                    <Text style={{fontSize:12.5,...styles.colorPrimary}}>Suggestions</Text>
+                                </Pressable>
+                                :
+                                null
+                            }
+                           
+                        </View>
+
+                        <View style={{gap:10,width:"100%"}}>
+                            <Text style={{...styles.text,fontSize:20}}>Instructor (optional):</Text>
+                            <TextInput style={styles.textInput} value={periodInForm.instructor} onChangeText={(text)=>handlePeriodForm(text,"instructor")}/>
+                            {
+                                getSuggestions(periodInForm,existingOptions,"instructor").length ?
+                                <Pressable style={{position:"absolute",top:"56%",right:10}} onPress={()=>setSuggestionKey("instructor")}>
+                                    <Text style={{fontSize:12.5,...styles.colorPrimary}}>Suggestions</Text>
+                                </Pressable>
+                                :
+                                null
+                            }
+                        </View>
+
+                        <Pressable style={{padding:5,paddingHorizontal:15,backgroundColor:"black",borderRadius:5,pointerEvents:"auto"}}
+                        onPress={()=>{periodModalForm==="add" ? addPeriod() : editPeriod()}}>
+                            <Text style={{...styles.text,color:"white",fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"}</Text>
+                        </Pressable>
                         
-                        />
-                    
-                        {
-                            suggestionBoxes.locations && getSuggestions(periodInForm.location,existingOptions.locations).length ?
-                            <>
-                                <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-                                    <Text style={styles.text}>Suggestions:</Text>
-                                    <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionBoxes({...suggestionBoxes,locations:false})}>
-                                        <Feather name="x" size={15} color="white" />
-                                    </Pressable>
-                                </View>
-                                <View style={{maxHeight:100,width:"100%",backgroundColor:"white",borderWidth:2,borderColor:"black",borderRadius:5,padding:10}}>
-                                    <ScrollView >
-                                    {
-                                        getSuggestions(periodInForm.location,existingOptions.locations).map((locationSuggestion,index)=>
-                                        <View style={{width:"100%"}} key={`sug-loc-${index}`}>
-                                            <Pressable style={{width:"100%",padding:2,pointerEvents:"auto"}} onPress={()=>setPeriodInForm({...periodInForm,location:locationSuggestion})}>
-                                                <Text>{locationSuggestion}</Text>
-                                            </Pressable>
-                                        </View>
-                                        )
-                                    }
-                                    </ScrollView>
-                                </View>
-                            </>
-                            :
-                            null
-                        }
                     </View>
-
-                    <View style={{gap:10,width:"100%"}}>
-                        <Text style={{...styles.text,fontSize:20}}>Instructor (optional):</Text>
-                        <TextInput style={{...styles.textInput}} value={periodInForm.instructor} onChangeText={(text)=>handlePeriodForm(text,"instructor")}
-                        onFocus={()=>setSuggestionBoxes({...suggestionBoxes,instructors:true})}
-                        />
-                    
-                        {
-                            suggestionBoxes.instructors && getSuggestions(periodInForm.instructor,existingOptions.instructors).length ?
-                            <>
-                                <View style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}>
-                                    <Text style={styles.text}>Suggestions:</Text>
-                                    <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionBoxes({...suggestionBoxes,instructors:false})}>
-                                        <Feather name="x" size={15} color="white" />
-                                    </Pressable>
-                                </View>
-                                <View style={{maxHeight:100,width:"100%",backgroundColor:"white",borderWidth:2,borderColor:"black",borderRadius:5,padding:10}}>
-                                    <ScrollView >
-                                    {
-                                        getSuggestions(periodInForm.instructor,existingOptions.instructors).map((instructorSuggestion,index)=>
-                                        <View style={{width:"100%"}} key={`sug-ins-${index}`}>
-                                            <Pressable style={{width:"100%",padding:2,pointerEvents:"auto"}} onPress={()=>setPeriodInForm({...periodInForm,instructor:instructorSuggestion})}>
-                                                <Text>{instructorSuggestion}</Text>
-                                            </Pressable>
-                                        </View>
-                                        )
-                                    }
-                                    </ScrollView>
-                                </View>
-                            </>
-                            :
-                            null
-                        }
-                    </View>
-
-                    <Pressable style={{padding:5,paddingHorizontal:15,backgroundColor:"black",borderRadius:5,pointerEvents:"auto"}}
-                    onPress={()=>{
-                        setSuggestionBoxes({titles:false,locations:false,instructors:false});
-                        periodModalForm==="add" ? addPeriod() : editPeriod()
-                    }}>
-                        <Text style={{...styles.text,color:"white",fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"}</Text>
-                    </Pressable>
-                </View>
                 </ScrollView>
+                {
+                    suggestionKey &&
+                    <View style={{position:"absolute",height:"100%",width:"100%",padding:50,backgroundColor:"rgba(0,0,0,0.7)",justifyContent:"center",alignItems:"center"}}>
+                        <View style={{width:"100%",backgroundColor:"white",padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
+                            <View style={{padding:10}}>
+                                <Text style={{fontSize:20}}>Suggestions</Text>
+
+                                <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionKey(null)}>
+                                    <Feather name="x" size={20} color="white" />
+                                </Pressable>
+                            </View>
+                            <View style={{width:"100%",borderColor:"black",borderWidth:1,marginTop:5}}></View>
+                            <ScrollView style={{height:300}}>
+                            {
+                                getSuggestions(periodInForm,existingOptions,suggestionKey).map((suggestion,index)=>
+
+                                <View style={{width:"100%"}} key={`sug-option-${index}`}>
+                                    <Pressable style={{width:"100%",padding:10,borderBottomWidth:1,borderColor:"black"}} onPress={()=>{setPeriodInForm({...periodInForm,[suggestionKey]:suggestion});setSuggestionKey(null);}}>
+                                        <Text>{suggestion}</Text>
+                                    </Pressable>
+                                </View>
+                                )
+                            }
+                            </ScrollView>
+                        </View>
+                    </View>
+                }
+
                 <LoadingOverlay visible={loading} />
             </Modal>
 

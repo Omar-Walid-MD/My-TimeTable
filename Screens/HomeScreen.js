@@ -1,14 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView } from 'react-native';
+import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView, Platform, PermissionsAndroid } from 'react-native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons'
 import themes from '../themes';
 import NavBar from '../Components/Navbar';
 import { useSelector } from 'react-redux';
 import store from '../Store/store';
 import { useEffect, useState } from 'react';
-import * as FileSystem from 'expo-file-system';
-import * as IntentLauncher from 'expo-intent-launcher';
-import * as DocumentPicker from 'expo-document-picker';
+import notifee, { TimestampTrigger, TriggerType, TimeUnit, RepeatFrequency, AndroidImportance } from "@notifee/react-native";
 
 
 export default function HomeScreen({navigation}) {
@@ -69,6 +67,11 @@ export default function HomeScreen({navigation}) {
         }
         return null;
     }
+
+    async function displayNotification()
+    {
+       
+    }
     
     useEffect(()=>{
         if(tables)
@@ -81,6 +84,9 @@ export default function HomeScreen({navigation}) {
 
     return (
         <View style={styles.pageContainer}>
+            {/* <Pressable onPress={()=>{displayNotification()}}>
+                <Text>Press For NOTIF</Text>
+            </Pressable> */}
             <Text style={{...styles.text,fontSize:20,marginTop:30,marginBottom:15}}>Today</Text>
             <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {

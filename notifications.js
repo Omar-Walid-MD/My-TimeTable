@@ -1,4 +1,4 @@
-// import * as Notifications from "expo-notifications";
+import notifee from "@notifee/react-native";
 import * as Device from 'expo-device';
 // const dayStrings = ["sun","mon","tue","wed","thu","fri","sat"];
 
