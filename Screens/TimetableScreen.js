@@ -127,7 +127,7 @@ export default function TimetableScreen({navigation}) {
                 index:tables[tableIndex].content[dayToAdd].length,
                 day: dayStrings.indexOf(dayToAdd)
             };
-            // newPeriod.notifId = await addPeriodNotification(newPeriod);
+            newPeriod.notifId = await addPeriodNotification(newPeriod);
 
             dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:[...table.content[dayToAdd],newPeriod]}    } : table)));
             resetPeriodForm();
@@ -149,7 +149,7 @@ export default function TimetableScreen({navigation}) {
                 location: periodInForm.location.trim(),
                 instructor: periodInForm.instructor.trim()
             };
-            // editedPeriod.notifId = await editPeriodNotification(editedPeriod);
+            editedPeriod.notifId = await editPeriodNotification(editedPeriod);
 
             dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:table.content[dayToAdd].map((p,i) => i===periodInForm.index ? editedPeriod : p)}    } : table)));
             resetPeriodForm();
@@ -162,7 +162,7 @@ export default function TimetableScreen({navigation}) {
     function deletePeriod(period)
     {
         setLoading(true);
-        // cancelNotification(period.notifId);
+        cancelNotification(period.notifId);
         dispatch(updateTables(tables.map((table,index)=>index===tableIndex ?   {...table,content: {...table.content,[dayStrings[period.day]]:table.content[dayStrings[period.day]].filter((p,i)=>i!==period.index)} } : table)));
         setPeriodToView(undefined);
         setLoading(false);
@@ -177,10 +177,10 @@ export default function TimetableScreen({navigation}) {
     {
         setLoading(true);
         dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? JSON.parse(JSON.stringify(tableTemplate)) : table)));
-        // if(tableIndex===currentTable)
-        // {
-        //     cancelAllNotifications();
-        // }
+        if(tableIndex===currentTable)
+        {
+            cancelAllNotifications();
+        }
         setLoading(false);
     }
 
@@ -196,8 +196,8 @@ export default function TimetableScreen({navigation}) {
             if(tableIndex===currentTable) dispatch(setCurrentTable(newIndex));
             setTableIndex(newIndex);
 
-            // cancelAllNotifications();
-            // addTableNotifications(newIndex);
+            cancelAllNotifications();
+            addTableNotifications(newIndex);
             setLoading(false);
         }
     }
@@ -205,9 +205,9 @@ export default function TimetableScreen({navigation}) {
     function handleCurrentTable(newTableIndex)
     {
         setLoading(true);
-        // cancelAllNotifications();
+        cancelAllNotifications();
         dispatch(setCurrentTable(newTableIndex));
-        // addTableNotifications(newTableIndex);
+        addTableNotifications(newTableIndex);
         setLoading(false);
     }
 
@@ -274,13 +274,11 @@ export default function TimetableScreen({navigation}) {
         let file = await DocumentPicker.getDocumentAsync({
             copyToCacheDirectory:true
         });
-        // console.log(file.assets[0])
         let fileContent = await FileSystem.readAsStringAsync(file.assets[0].uri);
         let importedTable = JSON.parse(fileContent);
         dispatch(updateTables([...tables,importedTable]));
         setNewTableModal(false);
     }
-
 
 
     useEffect(()=>{
@@ -366,9 +364,9 @@ export default function TimetableScreen({navigation}) {
                                         onPress={()=>{setPeriodToView({...period,index:j});setDayToAdd(day);}}
                                         key={`table-period-${day}-${j}`}>
                                             <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",backgroundColor:colors[(i*2+j)%colors.length],borderRadius:5,shadowColor:"black",elevation:5}}>
-                                                <Text style={{...styles.text,textAlign:"center",fontSize:15,fontWeight:"bold",margin:5}} numberOfLines={3}>{period.title}</Text>
-                                                <Text style={{...styles.text,position:"absolute",top:0,left:0,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                                                <Text style={{...styles.text,position:"absolute",bottom:0,left:0,padding:5,fontSize:10}}>{period.location}</Text>
+                                                <Text style={{textAlign:"center",fontSize:15,fontWeight:"bold",margin:5}} numberOfLines={3}>{period.title}</Text>
+                                                <Text style={{position:"absolute",top:0,left:0,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
+                                                <Text style={{position:"absolute",bottom:0,left:0,padding:5,fontSize:10}}>{period.location}</Text>
                                             </View>
                                         </Pressable>
                                         )
@@ -422,7 +420,6 @@ export default function TimetableScreen({navigation}) {
                                 style={styles.textInput}
                                 placeholder='00:00'
                                 value={getTimeString(periodInForm.from)}
-                                // onChangeText={(text)=>handlePeriodForm(text,"from")}
                                 onPressIn={()=>setFromTimePicker(true)}
                                 />
                             </View>
@@ -433,7 +430,6 @@ export default function TimetableScreen({navigation}) {
                                 style={styles.textInput}
                                 placeholder='00:00'
                                 value={getTimeString(periodInForm.to)}
-                                // onChangeText={(text)=>handlePeriodForm(text,"to")}
                                 onPressIn={()=>setToTimePicker(true)}
                                 />
                             </View>

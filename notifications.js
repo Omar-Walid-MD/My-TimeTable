@@ -1,72 +1,50 @@
-import notifee from "@notifee/react-native";
+import notifee, { TimestampTrigger, TriggerType, TimeUnit, RepeatFrequency, AndroidImportance } from "@notifee/react-native";
 import * as Device from 'expo-device';
 // const dayStrings = ["sun","mon","tue","wed","thu","fri","sat"];
 
-export async function registerForPushNotificationsAsync() {
-	let token;
-	
-	if (Device.isDevice) {
-		const { status: existingStatus } =
-		await Notifications.getPermissionsAsync();
-		let finalStatus = existingStatus;
-		if (existingStatus !== "granted") {
-		const { status } = await Notifications.requestPermissionsAsync();
-		finalStatus = status;
-		}
-		if (finalStatus !== "granted") {
-		// alert("Failed to get push token for push notification!");
-		return;
-		}
-		token = (await Notifications.getExpoPushTokenAsync({
-			'projectId': "3877a72b-c672-412e-8b07-a1a63ef9dcf0"
-		})).data;
-	//   console.log(token);
-	} else {
-		// alert("Must use physical device for Push Notifications");
-	}
-	
-	if (Platform.OS === "android") {
-		Notifications.setNotificationChannelAsync("default", {
-		name: "default",
-		importance: Notifications.AndroidImportance.MAX,
-		vibrationPattern: [0, 250, 250, 250],
-		sound: true,
-		lightColor: "#FF231F7C",
-		lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-		bypassDnd: true,
-		});
-	}
-	
-	return token;
+function getFirstTimeStamp(period)
+{
+	let timeStamp = new Date();
+	timeStamp.setHours(parseInt(period.from.split(":")[0]));
+	timeStamp.setMinutes(parseInt(period.from.split(":")[1]));
+	let periodDay = period.day>0 ? period.day-1 : 6; 
+	let dayDifference = periodDay-timeStamp.getDay();
+	dayDifference = dayDifference<0 ? 7+dayDifference : dayDifference;
+	timeStamp.setDate(timeStamp.getDate()+dayDifference);
+	return timeStamp.getTime() - 46 * 1000;
 }
 
+
 export async function cancelNotification(notifId){
-	await Notifications.cancelScheduledNotificationAsync(notifId);
+	await notifee.cancelTriggerNotification(notifId);
 	console.log("cancelled notif");
 }
 
 export async function cancelAllNotifications()
 {
-	await Notifications.cancelAllScheduledNotificationsAsync();
+	await notifee.cancelAllNotifications();
 }
 
 export async function addPeriodNotification(period)
 {
-	const notifId = await Notifications.scheduleNotificationAsync({
-        content: {
-        title: `(${period.title}) upcoming in 5 minutes!`,
-        body: `Head to ${period.location || "the next location"} now!`,
-		
-        },
-        trigger: {
-			weekday: period.day+1,
-			hour: parseInt(period.from.split(":")[0]),
-			minute: parseInt(period.from.split(":")[1]),
-			repeats: true
+	const notifId = await notifee.createTriggerNotification({
+		title: `(${period.title}) upcoming in 5 minutes!`,
+		body: `Head to ${period.location || "the next location"} now!`,
+		android: {
+			channelId: "periodNotif",
+			sound: "default",
+			// smallIcon:"notif_icon"
 		}
-    });
+	},
+	{
+		type:TriggerType.TIMESTAMP,
+		repeatFrequency: RepeatFrequency.WEEKLY,
+		timestamp: getFirstTimeStamp(period)
+	})
+	
+	console.log(new Date(getFirstTimeStamp(period)))
 	console.log("added notif"); 
-	return notifId.toString();
+	return notifId;
 }
 
 export async function editPeriodNotification(period)

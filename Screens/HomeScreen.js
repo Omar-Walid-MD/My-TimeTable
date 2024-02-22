@@ -6,11 +6,8 @@ import NavBar from '../Components/Navbar';
 import { useSelector } from 'react-redux';
 import store from '../Store/store';
 import { useEffect, useState } from 'react';
-import notifee, { TimestampTrigger, TriggerType, TimeUnit, RepeatFrequency, AndroidImportance } from "@notifee/react-native";
-
 
 export default function HomeScreen({navigation}) {
-
     
     const styles = useSelector(store => store.theme.styles);
     const currentTheme = useSelector(store => store.theme.theme);
@@ -68,10 +65,6 @@ export default function HomeScreen({navigation}) {
         return null;
     }
 
-    async function displayNotification()
-    {
-       
-    }
     
     useEffect(()=>{
         if(tables)
@@ -84,19 +77,16 @@ export default function HomeScreen({navigation}) {
 
     return (
         <View style={styles.pageContainer}>
-            {/* <Pressable onPress={()=>{displayNotification()}}>
-                <Text>Press For NOTIF</Text>
-            </Pressable> */}
             <Text style={{...styles.text,fontSize:20,marginTop:30,marginBottom:15}}>Today</Text>
             <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {
                 periods.length ? periods.map((period,index) =>
                 <View key={`period-${index}`} style={{backgroundColor:themes[currentTheme]["period-home"],padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5,"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0,borderColor:themes[currentTheme]["faint-2"]}}>
                     <Text style={{fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                    <Text style={{...styles.text,fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
+                    <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
                     <View style={{flexDirection:"column",width:"100%"}}>
-                        {period.location && <Text style={{fontSize:20,color:themes[currentTheme]["faint-2"],textTransform:"capitalize"}}>At: {period.location}</Text>}
-                        {period.instructor && <Text style={{fontSize:20,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
+                        {period.location && <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>}
+                        {period.instructor && <Text style={{fontSize:15,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
                         
                     </View>
                     <View style={{position:"absolute",top:0,left:0,margin:5,borderRadius:5,backgroundColor:themes[currentTheme]["faint"],height:25,aspectRatio:1,alignContent:"center",alignItems:"center"}}>
