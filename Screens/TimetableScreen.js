@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
-import { MaterialCommunityIcons, Octicons, Feather } from 'react-native-vector-icons'
+import { MaterialCommunityIcons, MaterialIcons, Octicons, Feather } from 'react-native-vector-icons'
 import themes from '../themes';
 import NavBar from '../Components/Navbar';
 import { useEffect, useState } from 'react';
@@ -14,18 +14,24 @@ import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as DocumentPicker from 'expo-document-picker';
 import SelectDropdown from 'react-native-select-dropdown'
+import i18n from '../i18n';
+import { addPopup } from '../Store/slice/popupsSlice';
+import PopupContainer from '../Components/PopupContainer';
+import AppText from '../Components/AppText';
 
 export default function TimetableScreen({navigation}) {
 
-    const styles = useSelector(store => store.theme.styles);
-    const currentTheme = useSelector(store => store.theme.theme);
+    const styles = useSelector(store => store.settings.styles);
+    const currentTheme = useSelector(store => store.settings.theme);
+    const currentMinutes = useSelector(store => store.settings.minutes);
+    const currentLang = useSelector(store => store.settings.lang);
 
     const s = 150;
     const dispatch = useDispatch();
     const dayStrings = ["sat","sun","mon","tue","wed","thu"]
 
     const tableTemplate = {
-        name: "Untitled",
+        name: i18n.t("tables.untitled"),
         content:
         {
             sat: [
@@ -50,8 +56,8 @@ export default function TimetableScreen({navigation}) {
     }
 
     const tables = useSelector(store => store.tables.tables) || [JSON.parse(JSON.stringify(tableTemplate))];
-    const [tableIndex,setTableIndex] = useState(0);
     const currentTable = useSelector(store => store.tables.currentTable);
+    const [tableIndex,setTableIndex] = useState(currentTable || 0);
 
     const colors = themes[currentTheme]["period-colors"];
 
@@ -81,19 +87,34 @@ export default function TimetableScreen({navigation}) {
 
     const [existingOptions,setExistingOptions] = useState({
         titles:[],
+        times: [],
         instructors: [],
         locations: []
     });
 
     const [suggestionKey,setSuggestionKey] = useState(null);
 
+    const [confirming,setConfirming] = useState(null);
+
     const [loading,setLoading] = useState(false);
+
+    function popup(text)
+    {
+        dispatch(addPopup({text:i18n.t(`popup.${text}`)}));
+    }
 
     function getSuggestions(periodInForm,existingOptions,suggestionKey)
     {
-        let inputText = periodInForm[suggestionKey];
-        let suggestionsList = existingOptions[suggestionKey+"s"]
-        return suggestionsList.filter((suggestion) => inputText==="" || (suggestion.toLowerCase().includes(inputText.toLowerCase()) && suggestion !== inputText));
+        if(suggestionKey!=="time")
+        {
+            let inputText = periodInForm[suggestionKey];
+            let suggestionsList = existingOptions[suggestionKey+"s"];
+            return suggestionsList.filter((suggestion) => inputText==="" || (suggestion.toLowerCase().includes(inputText.toLowerCase()) && suggestion !== inputText));
+        }
+        else
+        {
+            return existingOptions["times"];
+        }
     }
 
     function handlePeriodForm(text,property)
@@ -127,13 +148,15 @@ export default function TimetableScreen({navigation}) {
                 index:tables[tableIndex].content[dayToAdd].length,
                 day: dayStrings.indexOf(dayToAdd)
             };
-            newPeriod.notifId = await addPeriodNotification(newPeriod);
+
+            if(currentTable === tableIndex) newPeriod.notifId = await addPeriodNotification(newPeriod,currentMinutes,i18n.t("notif"));
+            setLoading(false);
 
             dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:[...table.content[dayToAdd],newPeriod]}    } : table)));
             resetPeriodForm();
             setDayToAdd();
             setPeriodModal(false);
-            setLoading(false);
+            popup("add-period");
 
         }
     }
@@ -149,42 +172,46 @@ export default function TimetableScreen({navigation}) {
                 location: periodInForm.location.trim(),
                 instructor: periodInForm.instructor.trim()
             };
-            editedPeriod.notifId = await editPeriodNotification(editedPeriod);
+            if(currentTable === tableIndex) editedPeriod.notifId = await editPeriodNotification(editedPeriod,currentMinutes,i18n.t("notif"));
+            setLoading(false);
 
             dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,content: {...table.content,[dayToAdd]:table.content[dayToAdd].map((p,i) => i===periodInForm.index ? editedPeriod : p)}    } : table)));
             resetPeriodForm();
             setDayToAdd();
             setPeriodModal(false);
-            setLoading(false);
+            popup("edit-period");
         }
     }
 
     function deletePeriod(period)
     {
         setLoading(true);
-        cancelNotification(period.notifId);
+        if(currentTable === tableIndex) cancelNotification(period.notifId);
+        setLoading(false);
         dispatch(updateTables(tables.map((table,index)=>index===tableIndex ?   {...table,content: {...table.content,[dayStrings[period.day]]:table.content[dayStrings[period.day]].filter((p,i)=>i!==period.index)} } : table)));
         setPeriodToView(undefined);
-        setLoading(false);
+        popup("delete-period");
     }
 
     function addNewTable()
     {
         dispatch(updateTables([...tables,{...JSON.parse(JSON.stringify(tableTemplate)),name:tableTitleEdit}]));
+        popup("add-table");
     }
 
     function resetTable()
     {
         setLoading(true);
         dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? JSON.parse(JSON.stringify(tableTemplate)) : table)));
-        if(tableIndex===currentTable)
+        if(currentTable === tableIndex)
         {
             cancelAllNotifications();
         }
         setLoading(false);
+        popup("reset-table");
     }
 
-    function deleteTable()
+    async function deleteTable()
     {
         if(tables.length>1)
         {
@@ -195,20 +222,40 @@ export default function TimetableScreen({navigation}) {
             let newIndex = tableIndex>0 ? tableIndex-1 : tableIndex+1;
             if(tableIndex===currentTable) dispatch(setCurrentTable(newIndex));
             setTableIndex(newIndex);
-
-            cancelAllNotifications();
-            addTableNotifications(newIndex);
+            
+            if(currentTable === tableIndex)
+            {
+                await cancelAllNotifications()
+                .then(()=>{
+                    addTableNotifications(newIndex);
+                })
+            }
             setLoading(false);
+            popup("delete-table");
         }
     }
 
-    function handleCurrentTable(newTableIndex)
+    async function enableTable(newTableIndex)
     {
         setLoading(true);
-        cancelAllNotifications();
-        dispatch(setCurrentTable(newTableIndex));
-        addTableNotifications(newTableIndex);
-        setLoading(false);
+        await cancelAllNotifications()
+        .then(()=>{
+            setLoading(false);
+            dispatch(setCurrentTable(newTableIndex));
+            addTableNotifications(newTableIndex);
+            popup("set-table");
+        })
+    }
+
+    async function disableTable()
+    {
+        setLoading(true);
+        await cancelAllNotifications()
+        .then(()=>{
+            setLoading(false);
+            dispatch(setCurrentTable(null));
+            popup("set-table");
+        })
     }
 
     function getTimeString(hourString)
@@ -237,7 +284,8 @@ export default function TimetableScreen({navigation}) {
         Object.keys(targetTable.content).forEach((day)=>{
                 
             targetTable.content[day].forEach(async (period)=>{
-                period.notifId = await addPeriodNotification(period);
+                // console.log(period.title,period.day)
+                period.notifId = await addPeriodNotification(period,currentMinutes,i18n.t("notif"));
             });
         });
         dispatch(updateTables(prevTables => prevTables.map((t,i) => i===tableIndex ? targetTable : t)));
@@ -267,6 +315,7 @@ export default function TimetableScreen({navigation}) {
         }
 
         setSettingsModal(false);
+        popup("export-table");
     }
 
     async function importTable()
@@ -278,11 +327,12 @@ export default function TimetableScreen({navigation}) {
         let importedTable = JSON.parse(fileContent);
         dispatch(updateTables([...tables,importedTable]));
         setNewTableModal(false);
+        popup("import-table");
     }
 
 
     useEffect(()=>{
-        let tempExistingOptions = {titles:[],instructors:[],locations:[]};
+        let tempExistingOptions = {titles:[],times:[],instructors:[],locations:[]};
         tables.forEach((table)=>{
             
             Object.keys(table.content).forEach((day)=>{
@@ -290,8 +340,15 @@ export default function TimetableScreen({navigation}) {
                 table.content[day].forEach((period)=>{
                     if(!tempExistingOptions.titles.includes(period.title) && period.title)
                         tempExistingOptions.titles.push(period.title);
+
+                    if(!tempExistingOptions.times.find((t)=>t.from===period.from && t.to===period.to) && period.from && period.to)
+                    {
+                        tempExistingOptions.times.push({from:period.from,to:period.to})
+                    }
+
                     if(!tempExistingOptions.instructors.includes(period.instructor) && period.instructor)
                         tempExistingOptions.instructors.push(period.instructor);
+
                     if(!tempExistingOptions.locations.includes(period.location) && period.location)
                         tempExistingOptions.locations.push(period.location);
 
@@ -299,11 +356,28 @@ export default function TimetableScreen({navigation}) {
             });
         });
         tempExistingOptions.titles.sort((a,b)=>a.toLowerCase()>b.toLowerCase() ? 1 : -1);
+        tempExistingOptions.times.sort();
         tempExistingOptions.instructors.sort((a,b)=>a.toLowerCase()>b.toLowerCase() ? 1 : -1);
         tempExistingOptions.locations.sort((a,b)=>a.toLowerCase()>b.toLowerCase() ? 1 : -1);
         setExistingOptions(tempExistingOptions);
 
-    },[tables])
+
+        
+
+        // let tablesWithUpdatedDays = JSON.parse(JSON.stringify(tables));
+        // tablesWithUpdatedDays.forEach((table)=>{
+        //     Object.keys(table.content).forEach((day)=>{
+        //         table.content[day].forEach((period)=>{
+        //             period.day = dayStrings.indexOf(day);
+        //             console.log(period.title,period.day)
+
+        //         })
+        //     })
+        // });
+        // dispatch(updateTables(tablesWithUpdatedDays));
+
+    },[tables]);
+
 
     return (
         <View style={styles.pageContainer}>
@@ -316,9 +390,9 @@ export default function TimetableScreen({navigation}) {
                         <Pressable onPress={()=>setTableIndex(index)}>
                         {
                             currentTable === index ?
-                            <Text style={{...styles.text,fontSize:20,backgroundColor:themes[currentTheme]["success"],color:"white",paddingHorizontal:4,padding:2,borderRadius:5}}>{table.name}</Text>
+                            <AppText fontFamily={""} style={{...styles.text,fontSize:20,backgroundColor:themes[currentTheme]["current"],color:"white",paddingHorizontal:4,padding:2,borderRadius:5}}>{table.name}</AppText>
                             :
-                            <Text style={{...styles.text,fontSize:20,color:tableIndex===index ? "black" : themes[currentTheme]["faint"]}}>{table.name}</Text>
+                            <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:tableIndex===index ? "black" : themes[currentTheme]["faint"]}}>{table.name}</AppText>
                         }
                         </Pressable>
                         {
@@ -331,7 +405,7 @@ export default function TimetableScreen({navigation}) {
                     </View>
                     )
                 }
-                    <Pressable style={{backgroundColor:themes[currentTheme]["faint"],borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>{setNewTableModal(true);setTableTitleEdit("Untitled");}}>
+                    <Pressable style={{backgroundColor:themes[currentTheme]["faint"],borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>{setNewTableModal(true);setTableTitleEdit(i18n.t("tables.untitled"));}}>
                         <Octicons name='plus' size={20} color="white" />
                     </Pressable>
 
@@ -344,7 +418,7 @@ export default function TimetableScreen({navigation}) {
                     {
                         dayStrings.map((day)=>
                         <View style={{width:s,alignItems:"center",paddingBottom:10}} key={`day-tab-${day}`}>
-                            <Text style={{...styles.text,fontSize:20,textTransform:"uppercase"}}>{day}</Text>
+                            <AppText fontFamily={""} style={{...styles.text,fontSize:20,textTransform:"uppercase"}}>{i18n.t(`days.${day}`)}</AppText>
                         </View>
                         )
                     }
@@ -364,9 +438,9 @@ export default function TimetableScreen({navigation}) {
                                         onPress={()=>{setPeriodToView({...period,index:j});setDayToAdd(day);}}
                                         key={`table-period-${day}-${j}`}>
                                             <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",backgroundColor:colors[(i*2+j)%colors.length],borderRadius:5,shadowColor:"black",elevation:5}}>
-                                                <Text style={{textAlign:"center",fontSize:15,fontWeight:"bold",margin:5}} numberOfLines={3}>{period.title}</Text>
-                                                <Text style={{position:"absolute",top:0,left:0,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                                                <Text style={{position:"absolute",bottom:0,left:0,padding:5,fontSize:10}}>{period.location}</Text>
+                                                <AppText fontFamily={""} fontWeight={"bold"} style={{textAlign:"center",fontSize:15,margin:5,lineHeight:20}} numberOfLines={3}>{period.title}</AppText>
+                                                <AppText fontFamily={""} style={{position:"absolute",top:0,...styles.positionLeft,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</AppText>
+                                                <AppText fontFamily={""} style={{position:"absolute",bottom:0,...styles.positionLeft,padding:5,fontSize:10}}>{period.location}</AppText>
                                             </View>
                                         </Pressable>
                                         )
@@ -391,21 +465,21 @@ export default function TimetableScreen({navigation}) {
 
             <Modal visible={periodModal} animationType='slide'>
                 <ScrollView contentContainerStyle={{flexGrow:1}}>
-                    <View style={{backgroundColor:themes[currentTheme]["bg"],width:"100%",flexDirection:"row",justifyContent:"center",alignItems:"center",paddingTop:20}}>
-                        <Text style={{...styles.text,fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"} Period</Text>
-                        <Pressable style={{position:"absolute",right:0,top:0,padding:5,margin:20,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setPeriodModal(false);resetPeriodForm();}}>
+                    <View style={{backgroundColor:themes[currentTheme]["bg"],width:"100%",justifyContent:"center",alignItems:"center",paddingTop:20}}>
+                        <AppText fontFamily={""} style={{...styles.text,fontSize:25}}>{i18n.t(`tables.${periodModalForm}`)} {i18n.t("tables.period")}</AppText>
+                        <Pressable style={{position:"absolute",...styles.positionRight,top:0,padding:5,margin:20,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setPeriodModal(false);resetPeriodForm();}}>
                             <Feather name="x" size={20} color="white" />
                         </Pressable>
                     </View>
                     <View style={{backgroundColor:themes[currentTheme]["bg"],height:"100%",padding:50,gap:20,alignItems:"center"}}>
                         <View style={{gap:10,width:"100%"}}>
-                            <Text style={{...styles.text,fontSize:20}}>Title:</Text>
-                            <TextInput style={styles.textInput} value={periodInForm.title} onChangeText={(text)=>handlePeriodForm(text,"title")}/>
+                            <AppText fontFamily={""} style={{...styles.text,fontSize:20}}>{i18n.t("tables.title")}:</AppText>
+                            <TextInput style={{...styles.textInput,fontFamily:""}} value={periodInForm.title} onChangeText={(text)=>handlePeriodForm(text,"title")}/>
 
                             {
                                 getSuggestions(periodInForm,existingOptions,"title").length ?
-                                <Pressable style={{position:"absolute",top:"56%",right:10}} onPress={()=>setSuggestionKey("title")}>
-                                    <Text style={{fontSize:12.5,...styles.colorPrimary}}>Suggestions</Text>
+                                <Pressable style={{position:"absolute",...styles.positionRight,bottom:12,width:45,height:45,alignItems:"center",justifyContent:"center"}} onPress={()=>setSuggestionKey("title")}>
+                                    <MaterialIcons name="search" size={25} color={themes[currentTheme]["primary"]} />
                                 </Pressable>
                                 :
                                 null
@@ -413,11 +487,11 @@ export default function TimetableScreen({navigation}) {
                             
                         </View>
 
-                        <View style={{width:"100%",flexDirection:"row",justifyContent:"space-between"}}>
+                        <View style={{width:"100%",...styles.flexRow,justifyContent:"space-between"}}>
                             <View style={{gap:10,width:"45%"}}>
-                                <Text style={{...styles.text,fontSize:20}}>From:</Text>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20}}>{i18n.t("tables.from")}:</AppText>
                                 <TextInput 
-                                style={styles.textInput}
+                                style={{...styles.textInput,fontFamily:""}}
                                 placeholder='00:00'
                                 value={getTimeString(periodInForm.from)}
                                 onPressIn={()=>setFromTimePicker(true)}
@@ -425,23 +499,26 @@ export default function TimetableScreen({navigation}) {
                             </View>
 
                             <View style={{gap:10,width:"45%"}}>
-                                <Text style={{...styles.text,fontSize:20}}>To:</Text>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20}}>{i18n.t("tables.to")}:</AppText>
                                 <TextInput 
-                                style={styles.textInput}
+                                style={{...styles.textInput,fontFamily:""}}
                                 placeholder='00:00'
                                 value={getTimeString(periodInForm.to)}
                                 onPressIn={()=>setToTimePicker(true)}
                                 />
+                                <Pressable style={{position:"absolute",...styles.positionRight,bottom:12,width:45,height:45,alignItems:"center",justifyContent:"center"}} onPress={()=>setSuggestionKey("time")}>
+                                    <MaterialIcons name="search" size={25} color={themes[currentTheme]["primary"]} />
+                                </Pressable>
                             </View>
                         </View>
 
                         <View style={{gap:10,width:"100%"}}>
-                            <Text style={{...styles.text,fontSize:20}}>Location (optional):</Text>
-                            <TextInput style={styles.textInput} value={periodInForm.location} onChangeText={(text)=>handlePeriodForm(text,"location")}/>
+                            <AppText fontFamily={""} style={{...styles.text,fontSize:20}}>{i18n.t("tables.loc")} ({i18n.t("tables.opt")}):</AppText>
+                            <TextInput style={{...styles.textInput,fontFamily:""}} value={periodInForm.location} onChangeText={(text)=>handlePeriodForm(text,"location")}/>
                             {
                                 getSuggestions(periodInForm,existingOptions,"location").length ?
-                                <Pressable style={{position:"absolute",top:"56%",right:10}} onPress={()=>setSuggestionKey("location")}>
-                                    <Text style={{fontSize:12.5,...styles.colorPrimary}}>Suggestions</Text>
+                                <Pressable style={{position:"absolute",...styles.positionRight,bottom:12,width:45,height:45,alignItems:"center",justifyContent:"center"}} onPress={()=>setSuggestionKey("location")}>
+                                    <MaterialIcons name="search" size={25} color={themes[currentTheme]["primary"]} />
                                 </Pressable>
                                 :
                                 null
@@ -450,12 +527,12 @@ export default function TimetableScreen({navigation}) {
                         </View>
 
                         <View style={{gap:10,width:"100%"}}>
-                            <Text style={{...styles.text,fontSize:20}}>Instructor (optional):</Text>
-                            <TextInput style={styles.textInput} value={periodInForm.instructor} onChangeText={(text)=>handlePeriodForm(text,"instructor")}/>
+                            <AppText fontFamily={""} style={{...styles.text,fontSize:20}}>{i18n.t("tables.inst")} ({i18n.t("tables.opt")}):</AppText>
+                            <TextInput style={{...styles.textInput,fontFamily:""}} value={periodInForm.instructor} onChangeText={(text)=>handlePeriodForm(text,"instructor")}/>
                             {
                                 getSuggestions(periodInForm,existingOptions,"instructor").length ?
-                                <Pressable style={{position:"absolute",top:"56%",right:10}} onPress={()=>setSuggestionKey("instructor")}>
-                                    <Text style={{fontSize:12.5,...styles.colorPrimary}}>Suggestions</Text>
+                                <Pressable style={{position:"absolute",...styles.positionRight,bottom:12,width:45,height:45,alignItems:"center",justifyContent:"center"}} onPress={()=>setSuggestionKey("instructor")}>
+                                    <MaterialIcons name="search" size={25} color={themes[currentTheme]["primary"]} />
                                 </Pressable>
                                 :
                                 null
@@ -464,7 +541,7 @@ export default function TimetableScreen({navigation}) {
 
                         <Pressable style={{padding:5,paddingHorizontal:15,backgroundColor:"black",borderRadius:5,pointerEvents:"auto"}}
                         onPress={()=>{periodModalForm==="add" ? addPeriod() : editPeriod()}}>
-                            <Text style={{...styles.text,color:"white",fontSize:25}}>{periodModalForm==="add" ? "Add" : "Edit"}</Text>
+                            <AppText fontFamily={""} style={{...styles.text,color:"white",fontSize:25}}>{i18n.t(`tables.${periodModalForm}`)}</AppText>
                         </Pressable>
                         
                     </View>
@@ -474,20 +551,30 @@ export default function TimetableScreen({navigation}) {
                     <View style={{position:"absolute",height:"100%",width:"100%",padding:50,backgroundColor:"rgba(0,0,0,0.7)",justifyContent:"center",alignItems:"center"}}>
                         <View style={{width:"100%",backgroundColor:"white",padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
                             <View style={{padding:10}}>
-                                <Text style={{fontSize:20}}>Suggestions</Text>
+                                <AppText fontFamily={""} style={{fontSize:20}}>{i18n.t("tables.suggestions")}</AppText>
 
-                                <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionKey(null)}>
+                                <Pressable style={{position:"absolute",top:0,...styles.positionRight,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionKey(null)}>
                                     <Feather name="x" size={20} color="white" />
                                 </Pressable>
                             </View>
                             <View style={{width:"100%",borderColor:"black",borderWidth:1,marginTop:5}}></View>
                             <ScrollView style={{height:300}}>
                             {
+                                suggestionKey!=="time" ?
                                 getSuggestions(periodInForm,existingOptions,suggestionKey).map((suggestion,index)=>
 
                                 <View style={{width:"100%"}} key={`sug-option-${index}`}>
                                     <Pressable style={{width:"100%",padding:10,borderBottomWidth:1,borderColor:"black"}} onPress={()=>{setPeriodInForm({...periodInForm,[suggestionKey]:suggestion});setSuggestionKey(null);}}>
-                                        <Text>{suggestion}</Text>
+                                        <AppText fontFamily={""} style={{fontSize:20,...styles.textLeft}}>{suggestion}</AppText>
+                                    </Pressable>
+                                </View>
+                                )
+                                :
+                                getSuggestions(periodInForm,existingOptions,"time").map((suggestion,index)=>
+
+                                <View style={{width:"100%"}} key={`sug-option-${index}`}>
+                                    <Pressable style={{width:"100%",padding:10,borderBottomWidth:1,borderColor:"black"}} onPress={()=>{setPeriodInForm({...periodInForm,"from":suggestion.from,"to":suggestion.to});setSuggestionKey(null);}}>
+                                        <AppText fontFamily={""} style={{fontSize:20}}>{getTimeString(suggestion.from)} - {getTimeString(suggestion.to)}</AppText>
                                     </Pressable>
                                 </View>
                                 )
@@ -508,25 +595,27 @@ export default function TimetableScreen({navigation}) {
                         {
                             periodToView &&
 
-                            <View style={{alignItems:"center",gap:10,marginBottom:50}}>
-                                <Text style={{...styles.text,fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(periodToView.from)} - {getTimeString(periodToView.to)}</Text>
-                                <Text style={{...styles.text,fontSize:40,marginBottom:20}}>{periodToView.title}</Text>
-                                {periodToView.location && <Text style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint-2"],textTransform:"capitalize"}}>At: {periodToView.location}</Text>}
-                                {periodToView.instructor && <Text style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {periodToView.instructor}</Text>}
+                            <View style={{alignItems:"center",gap:10,marginBottom:20}}>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(periodToView.from)} - {getTimeString(periodToView.to)}</AppText>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:40,textAlign:"center",marginBottom:20}}>{periodToView.title}</AppText>
+                                {periodToView.location && <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint-2"],textTransform:"capitalize",textAlign:"center"}}>{i18n.t("home.at")}: {periodToView.location}</AppText>}
+                                {periodToView.instructor && <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint"],textTransform:"capitalize",textAlign:"center"}}>{i18n.t("home.by")}: {periodToView.instructor}</AppText>}
                             </View>
                         }
 
-                        <View style={{flexDirection:"row",gap:100}}>
-                            <Pressable style={{...styles.button,...styles.borderDanger}} onPress={()=>deletePeriod(periodToView)}>
-                                <Text style={{...styles.text,fontSize:20,...styles.colorDanger}}>Delete</Text>
+                        <View style={{gap:10}}>
+                            <Pressable style={{...styles.button,...styles.bgPrimary}} onPress={()=>{setPeriodModalForm("edit");setPeriodInForm(periodToView);setPeriodModal(true);setPeriodToView(undefined);}}>
+                                <MaterialCommunityIcons name="pencil-box-outline" color="white" size={30} />
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.edit")}</AppText>
                             </Pressable>
 
-                            <Pressable style={{...styles.button,...styles.borderPrimary}} onPress={()=>{setPeriodModalForm("edit");setPeriodInForm(periodToView);setPeriodModal(true);setPeriodToView(undefined);}}>
-                                <Text style={{...styles.text,fontSize:20,...styles.colorPrimary}}>Edit</Text>
+                            <Pressable style={{...styles.button,...styles.bgDanger}} onPress={()=>deletePeriod(periodToView)}>
+                                <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.delete")}</AppText>
                             </Pressable>
                         </View>
 
-                        <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>setPeriodToView(undefined)}>
+                        <Pressable style={{position:"absolute",top:0,...styles.positionRight,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>setPeriodToView(undefined)}>
                             <Feather name="x" size={20} color="white" />
                         </Pressable>
 
@@ -544,19 +633,19 @@ export default function TimetableScreen({navigation}) {
                             isEditingTableTitle ?
                             <View style={{flexDirection:"column",alignItems:"center",gap:10}}>
                                 <TextInput
-                                style={{...styles.textInput,width:200}}
+                                style={{...styles.textInput,fontFamily:"",width:200}}
                                 value={tableTitleEdit}
                                 onChangeText={(text)=>setTableTitleEdit(text)}
                                 />
                                 <Pressable
                                 style={{backgroundColor:"black",borderRadius:5,padding:5}}
                                 onPress={()=>{if(tableTitleEdit)dispatch(updateTables(tables.map((table,index)=>index===tableIndex ? {...table,name:tableTitleEdit} : table)));setTableTitleEdit("");setIsEditingTableTitle(false);}}>
-                                    <Text style={{...styles.text,color:"white",fontSize:20}}>Confirm</Text>
+                                    <AppText fontFamily={""} style={{...styles.text,color:"white",fontSize:20}}>{i18n.t("tables.confirm")}</AppText>
                                 </Pressable>
                             </View>
                             :
                             <>
-                                <Text style={{...styles.text,fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tables[tableIndex].name}</Text>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tables[tableIndex].name}</AppText>
                                 <Pressable style={{position:"absolute",bottom:-12,right:-10,backgroundColor:"black",borderRadius:20,padding:5}} onPress={()=>{setIsEditingTableTitle(true);setTableTitleEdit(tables[tableIndex].name);}}>
                                     <MaterialCommunityIcons name='pencil' size={15} color="white" />
                                 </Pressable>
@@ -564,34 +653,73 @@ export default function TimetableScreen({navigation}) {
                         }
                         </View>
 
-                        <View style={{flexDirection:"column",gap:20,alignItems:"center"}}>
+                        <View style={{flexDirection:"column",gap:20,alignItems:"stretch"}}>
                             {
                                 tables.length > 1 &&
-                                <Pressable onPress={()=>deleteTable()} style={{...styles.button,...styles.borderDanger}}>
-                                    <Text style={{...styles.text,fontSize:20,...styles.colorDanger}}>Delete</Text>
+                                <Pressable onPress={()=>setConfirming("delete")} style={{...styles.button,...styles.bgDanger}}>
+                                    <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
+                                    <AppText fontFamily={""} style={{color:"white",fontSize:20}}>{i18n.t("tables.delete")}</AppText>
                                 </Pressable>
                             }
                             {
-                                tableIndex !== currentTable &&
-                                <Pressable onPress={()=>handleCurrentTable(tableIndex)}>
-                                    <Text style={{...styles.text,fontSize:20,color:"white",backgroundColor:themes[currentTheme]["success"],padding:5,borderRadius:5}}>Set Current</Text>
+                                tableIndex !== currentTable ?
+                                <Pressable onPress={()=>enableTable(tableIndex)} style={{...styles.button,...styles.bgSuccess}}>
+                                    <MaterialCommunityIcons name="check-circle-outline" color="white" size={30} /> 
+                                    <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white",}}>{i18n.t("tables.enable")}</AppText>
+                                </Pressable>
+                                :
+                                <Pressable onPress={()=>disableTable()} style={{...styles.button,...styles.bgDanger}}>
+                                    <Feather name="x-circle" color="white" size={30} /> 
+                                    <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white",}}>{i18n.t("tables.disable")}</AppText>
                                 </Pressable>
                             }
-                            <Pressable style={{...styles.button,...styles.borderPrimary}} onPress={()=>resetTable()}>
-                                <Text style={{...styles.text,fontSize:20,...styles.colorPrimary}}>Reset</Text>
+                            <Pressable style={{...styles.button,...styles.bgPrimary}} onPress={()=>setConfirming("reset")}>
+                                <MaterialCommunityIcons name="refresh" color="white" size={30} /> 
+                                <AppText fontFamily={""} style={{color:"white",fontSize:20}}>{i18n.t("tables.reset")}</AppText>
                             </Pressable>
 
-                            <Pressable style={{...styles.button,...styles.borderSuccess}} onPress={()=>exportTable()}>
-                                <Text style={{...styles.text,fontSize:20,...styles.colorSuccess}}>Export</Text>
+                            <Pressable style={{...styles.button,...styles.bgSuccess}} onPress={()=>exportTable()}>
+                                <MaterialCommunityIcons name="export" color="white" size={30} /> 
+                                <AppText fontFamily={""} style={{color:"white",fontSize:20}}>{i18n.t("tables.export")}</AppText>
                             </Pressable>
                         </View>
 
-                        <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setSettingsModal(false);setTableTitleEdit("");setIsEditingTableTitle(false);}}>
+                        <Pressable style={{position:"absolute",top:0,...styles.positionRight,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setSettingsModal(false);setTableTitleEdit("");setIsEditingTableTitle(false);}}>
                             <Feather name="x" size={20} color="white" />
                         </Pressable>
 
                     </View>
                 </View>
+                {
+                    confirming &&
+                    <View style={{position:"absolute",top:0,...styles.positionLeft,width:"100%",height:"100%",alignItems:"center",justifyContent:"center",padding:50,backgroundColor:"rgba(0,0,0,0.7)"}}>
+                        <View style={{width:"100%",alignItems:"center",backgroundColor:"white",padding:20,borderRadius:5,shadowColor:"black",elevation:5}}>
+                            <AppText fontFamily={""} style={{fontSize:25,textTransform:"capitalize"}}>{i18n.t(`tables.confirm-${confirming}-title`)}</AppText>
+                            <AppText fontFamily={""} style={{fontSize:20,marginVertical:20}}>{i18n.t(`tables.confirm-${confirming}-message`)}</AppText>
+
+                            <View style={{...styles.flexRow,justifyContent:"space-between",width:"100%"}}>
+                                <Pressable style={{...styles.button,backgroundColor:"gray"}} onPress={()=>setConfirming(null)}>
+                                    <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.cancel")}</AppText>
+                                </Pressable>
+                                
+                                {
+                                    confirming==="reset" ?
+                                    <Pressable style={{...styles.button,...styles.bgDanger}} onPress={()=>{resetTable();setConfirming(null);}}>
+                                        <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
+                                        <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.reset")}</AppText>
+                                    </Pressable>
+                                    :
+                                    confirming==="delete" ?
+                                    <Pressable style={{...styles.button,...styles.bgDanger}} onPress={()=>{deleteTable();setConfirming(null);}}>
+                                        <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
+                                        <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.delete")}</AppText>
+                                    </Pressable>
+                                    : null
+                                }
+                            </View>
+                        </View>
+                    </View>
+                }
                 <LoadingOverlay visible={loading} />
             </Modal>
 
@@ -604,19 +732,19 @@ export default function TimetableScreen({navigation}) {
                             isEditingTableTitle ?
                             <View style={{flexDirection:"column",alignItems:"center",gap:10}}>
                                 <TextInput
-                                style={{...styles.textInput,width:200}}
+                                style={{...styles.textInput,fontFamily:"",width:200}}
                                 value={tableTitleEdit}
                                 onChangeText={(text)=>setTableTitleEdit(text)}
                                 />
                                 <Pressable
                                 style={{backgroundColor:"black",borderRadius:5,padding:5}}
                                 onPress={()=>{setIsEditingTableTitle(false);}}>
-                                    <Text style={{...styles.text,color:"white",fontSize:20}}>Confirm</Text>
+                                    <AppText fontFamily={""} style={{...styles.text,color:"white",fontSize:20}}>{i18n.t("tables.confirm")}</AppText>
                                 </Pressable>
                             </View>
                             :
                             <>
-                                <Text style={{...styles.text,fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tableTitleEdit}</Text>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tableTitleEdit}</AppText>
                                 <Pressable style={{position:"absolute",bottom:-12,right:-10,backgroundColor:"black",borderRadius:20,padding:5}} onPress={()=>{setIsEditingTableTitle(true);}}>
                                     <MaterialCommunityIcons name='pencil' size={15} color="white" />
                                 </Pressable>
@@ -625,20 +753,20 @@ export default function TimetableScreen({navigation}) {
                         </View>
 
                         <View style={{flexDirection:"column",gap:15,alignItems:"center"}}>
-                            <Pressable style={{...styles.button,...styles.borderPrimary}} onPress={()=>{addNewTable();setNewTableModal(false);}}>
-                                <Text style={{...styles.text,fontSize:20,...styles.colorPrimary}}>Add</Text>
+                            <Pressable style={{...styles.button,...styles.bgPrimary}} onPress={()=>{addNewTable();setNewTableModal(false);}}>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.add")}</AppText>
                             </Pressable>
-                            <View style={{flexDirection:"row",gap:5,alignItems:"center",marginBottom:5}}>
+                            <View style={{...styles.flexRow,gap:5,alignItems:"center",marginBottom:5}}>
                                 <View style={{width:50,borderWidth:1.25,marginTop:8,borderColor:themes[currentTheme]["faint"]}}></View>
-                                <Text style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint"]}}>or</Text>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint"]}}>{i18n.t("tables.or")}</AppText>
                                 <View style={{width:50,borderWidth:1.25,marginTop:8,borderColor:themes[currentTheme]["faint"]}}></View>
                             </View>
-                            <Pressable style={{...styles.button,...styles.borderSuccess}} onPress={()=>importTable()}>
-                                <Text style={{...styles.text,fontSize:20,...styles.colorSuccess}}>Import</Text>
+                            <Pressable style={{...styles.button,...styles.bgSuccess}} onPress={()=>importTable()}>
+                                <AppText fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.import")}</AppText>
                             </Pressable>
                         </View>
 
-                        <Pressable style={{position:"absolute",top:0,right:0,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setNewTableModal(false);setIsEditingTableTitle(false);}}>
+                        <Pressable style={{position:"absolute",top:0,...styles.positionRight,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{setNewTableModal(false);setIsEditingTableTitle(false);}}>
                             <Feather name="x" size={20} color="white" />
                         </Pressable>
 
@@ -662,6 +790,7 @@ export default function TimetableScreen({navigation}) {
                 onConfirm={(time)=>{setToTimePicker(false);setPeriodInForm({...periodInForm,to:time.toTimeString().slice(0,5)})}}
                 onCancel={()=>setToTimePicker(false)}
             />
+            <PopupContainer />
             <StatusBar style="auto"/>
         </View>
     );

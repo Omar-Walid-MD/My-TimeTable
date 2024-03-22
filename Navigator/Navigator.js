@@ -1,12 +1,13 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import HomeScreen from "../Screens/HomeScreen";
 import { StyleSheet } from "react-native";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import TimetableScreen from '../Screens/TimetableScreen';
 import { getCurrentTable, getTables } from '../Store/slice/slice';
 import NavBar from '../Components/Navbar';
 import SettingsScreen from '../Screens/SettingsScreen';
-import { getTheme } from '../Store/slice/themeSlice';
+import { getLang, getMinutes, getTheme } from '../Store/slice/settingsSlice';
+import { useEffect } from 'react';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -14,9 +15,15 @@ const Tab = createMaterialTopTabNavigator();
 export default function Navigator()
 {
     const dispatch = useDispatch();
-    dispatch(getTables());
-    dispatch(getCurrentTable());
-    dispatch(getTheme());
+
+    useEffect(()=>{
+
+        dispatch(getTables());
+        dispatch(getCurrentTable());
+        dispatch(getTheme());
+        dispatch(getMinutes());
+        dispatch(getLang());
+    },[]);
 
     return (
         <Tab.Navigator

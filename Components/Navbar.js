@@ -4,13 +4,17 @@ import { MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons'
 import styles from '../styles';
 import themes from '../themes';
 import { useRoute } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import { clearPopups } from '../Store/slice/popupsSlice';
 
-export default function NavBar({state, descriptors, navigation, position}) {
+export default function NavBar({state, descriptors, navigation, position})
+{
 
-    const styles = useSelector(store => store.theme.styles);
-    const currentTheme = useSelector(store => store.theme.theme);
+    const dispatch = useDispatch();
+
+    const styles = useSelector(store => store.settings.styles);
+    const currentTheme = useSelector(store => store.settings.theme);
 
     const buttons = {
         "Home": {
@@ -30,6 +34,10 @@ export default function NavBar({state, descriptors, navigation, position}) {
         }
     }
 
+    function clearAllPopups()
+    {
+        dispatch(clearPopups());
+    }
 
     return (
 
@@ -55,6 +63,7 @@ export default function NavBar({state, descriptors, navigation, position}) {
                     if (!isFocused && !event.defaultPrevented) {
                         navigation.navigate(route.name, route.params);
                     }
+                    clearAllPopups();
                 };
 
                 const onLongPress = () => {
@@ -62,6 +71,7 @@ export default function NavBar({state, descriptors, navigation, position}) {
                         type: 'tabLongPress',
                         target: route.key,
                     });
+                    clearAllPopups();
                 };                
 
                 return (

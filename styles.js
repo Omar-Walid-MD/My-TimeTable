@@ -2,15 +2,27 @@ import { StyleSheet } from 'react-native';
 import themes from './themes';
 
 
-function getStyles(themeName)
+const values = {
+	"row": "row-reverse",
+	"row-reverse": "row",
+	"left": "right",
+	"right": "left"
+}
+
+function getValue(value,lang)
+{
+	return lang==="ar" ? values[value] : value;
+}
+
+function getStyles(themeName,lang)
 {
 	const theme = themes[themeName]
 	return  StyleSheet.create({
 
 		container: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
 		},
 
 		pageContainer: {
@@ -18,7 +30,7 @@ function getStyles(themeName)
 			writingDirection:"ltr",
 			width: "100%",
 			flex: 1,
-			backgroundColor: theme["bg"]
+			backgroundColor: theme["bg"],
 		},
 
 		navbar: {
@@ -43,7 +55,9 @@ function getStyles(themeName)
 			borderColor:"lightgray",
 			borderWidth:1,
 			borderRadius:5,
-			pointerEvents:"auto"
+			pointerEvents:"auto",
+			textAlign: getValue("left",lang),
+			
 		},
 
 		tableTab: {
@@ -57,9 +71,11 @@ function getStyles(themeName)
 		button: {
 			padding:5,
 			borderRadius:5,
-			borderWidth:2,
+			// borderWidth:2,
 			justifyContent:"center",
-			alignItems:"center"
+			alignItems:"center",
+			flexDirection:"row",
+			gap:5
 		},
 
 		borderPrimary: {
@@ -71,6 +87,9 @@ function getStyles(themeName)
 		borderSuccess: {
 			borderColor: theme["success"],
 		},
+		borderCurrent: {
+			borderColor: theme["current"],
+		},
 
 		colorPrimary: {
 			color: theme["primary"]
@@ -81,6 +100,9 @@ function getStyles(themeName)
 		colorSuccess: {
 			color: theme["success"]
 		},
+		colorCurrent: {
+			color: theme["current"]
+		},
 
 		bgPrimary: {
 			backgroundColor: theme["primary"]
@@ -90,6 +112,24 @@ function getStyles(themeName)
 		},
 		bgSuccess: {
 			backgroundColor: theme["success"],
+		},
+		bgCurrent: {
+			backgroundColor: theme["current"],
+		},
+
+		flexRow: {
+			flexDirection: getValue("row",lang)
+		},
+		textLeft: {
+			textAlign: getValue("left",lang)
+		},
+
+		positionLeft: {
+			[getValue("left",lang)]: 0
+		},
+
+		positionRight: {
+			[getValue("right",lang)]: 0
 		}
   });
 

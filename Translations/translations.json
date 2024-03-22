@@ -1,0 +1,164 @@
+{
+    "ar": {
+        "days": {
+            "sat": "سبت",
+            "sun": "أحد",
+            "mon": "إثنين",
+            "tue": "ثلاثاء",
+            "wed": "أربعاء",
+            "thu": "خميس",
+            "fri": "جمعة"
+        },
+        "home": {
+            "today": "اليوم",
+            "no-periods": "لا يوجد حصص اليوم.",
+            "at": "في",
+            "by": "مع"
+        },
+        "tables": {
+            "untitled": "بلا عنوان",
+            "period": "حصة",
+            "add": "إضافة",
+            "edit": "تعديل",
+            "delete": "إزالة",
+            "reset": "محو",
+            "import": "إستيراد",
+            "export": "تصدير",
+            "enable": "تفعيل",
+            "disable": "تعطيل",
+            "cancel": "إلغاء",
+            "confirm": "تأكيد",
+            "suggestions": "إقتراحات",
+            "or": "أو",
+
+            "title": "العنوان",
+            "from": "من",
+            "to": "إلى",
+            "loc": "المكان",
+            "inst": "المدرس",
+            "opt": "إختياري",
+
+            "confirm-reset-title": "تأكيد المحو",
+            "confirm-delete-title": "تأكيد الإزالة",
+            "confirm-reset-message": "هل حقا ترغب في محو الجدول؟",
+            "confirm-delete-message": "هل حقا ترغب في إزالة الجدول؟"
+
+        },
+        "settings": {
+            "theme": "اللون",
+            "green": "أخضر",
+            "blue": "أزرق",
+            "red": "أحمر",
+            "yellow": "أصفر",
+
+            "notify-before": "إشعار قبل",
+
+            "lang": "اللغة"
+        },
+        "popup": {
+            "theme": "تم تغيير اللون.",
+            "minutes": "تم تغيير وقت الإشعارات.",
+            "lang": "تم تغيير اللغة.",
+
+            "add-period": "تمت إضافة الحصة.",
+            "edit-period": "تم تعديل الحصة.",
+            "delete-period": "تمت إزالة الحصة.",
+            
+            "add-table": "تمت إضافة الجدول.",
+            "reset-table": "تم محو الجدول.",
+            "delete-table": "تمت إزالة الجدول.",
+            "set-table": "تم تغيير الجدول الحالي.",
+            "import-table": "تم إستيراد الجدول.",
+            "export-table": "تم تصدير الجدول."
+        },
+        "notif": {
+            "a": "يبدأ في",
+            "b": "دقائق",
+            "c": "يبدأ الان",
+            "d": "توجه الى",
+            "e": "المكان التالى",
+            "f": "الان"
+        }
+    },
+    
+    "en": {
+        "days": {
+            "sat": "Sat",
+            "sun": "Sun",
+            "mon": "Mon",
+            "tue": "Tue",
+            "wed": "Wed",
+            "thu": "Thu",
+            "fri": "Fri"
+        },
+        "home": {
+            "today": "Today",
+            "no-periods": "No Periods Today.",
+            "at": "At",
+            "by": "By"
+        },
+        "tables": {
+            "untitled": "Untitled",
+            "period": "Period",
+            "add": "Add",
+            "edit": "Edit",
+            "delete": "Delete",
+            "reset": "Reset",
+            "import": "Import",
+            "export": "Export",
+            "enable": "Enable",
+            "disable": "Disable",
+            "cancel": "Cancel",
+            "confirm": "Confirm",
+            "suggestions": "Suggestions",
+            "or": "or",
+
+            "title": "Title",
+            "from": "From",
+            "to": "To",
+            "loc": "Location",
+            "inst": "Intructor",
+            "opt": "Optional",
+
+            "confirm-reset-title": "Confirm Reset",
+            "confirm-delete-title": "Confirm Delete",
+            "confirm-reset-message": "Are you sure you want to reset table?",
+            "confirm-delete-message": "Are you sure you want to delete table?"
+        },
+        "settings": {
+            "theme": "Theme",
+            "green": "green",
+            "blue": "blue",
+            "red": "red",
+            "yellow": "yellow",
+
+            "notify-before": "Notify Before",
+
+            "lang": "Language"
+        },
+        "popup": {
+            "theme": "Changed Theme.",
+            "minutes": "Changed Notification Timing.",
+            "lang": "Changed Language.",
+
+            "add-period": "Added Period.",
+            "edit-period": "Edited Period.",
+            "delete-period": "Deleted Period.",
+
+            "add-table": "Added New Table.",
+            "reset-table": "Table Reset.",
+            "delete-table": "Deleted Table.",
+            "set-table": "Changed Current Table.",
+            "import-table": "Imported Table.",
+            "export-table": "Exported Table."
+        },
+        "notif": {
+            "a": "Upcoming in",
+            "b": "minutes",
+            "c": "starts now",
+            "d": "Head to",
+            "e": "the next location",
+            "f": "now"
+        }
+    }
+}

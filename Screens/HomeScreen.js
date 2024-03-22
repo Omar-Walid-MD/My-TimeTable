@@ -6,15 +6,19 @@ import NavBar from '../Components/Navbar';
 import { useSelector } from 'react-redux';
 import store from '../Store/store';
 import { useEffect, useState } from 'react';
+import * as Localization from "expo-localization";
+import i18n from '../i18n';
+import AppText from '../Components/AppText';
 
 export default function HomeScreen({navigation}) {
     
-    const styles = useSelector(store => store.theme.styles);
-    const currentTheme = useSelector(store => store.theme.theme);
+    const styles = useSelector(store => store.settings.styles);
+    const currentTheme = useSelector(store => store.settings.theme);
 
     const tables = useSelector(store => store.tables.tables);
     const currentTable = useSelector(store => store.tables.currentTable);
-    
+    const currentLang = useSelector(store => store.settings.lang);
+
     const dayStrings = ["sun","mon","tue","wed","thu","fri","sat"];
     let day = dayStrings[new Date().getDay()];
     // day = "sat";
@@ -77,25 +81,25 @@ export default function HomeScreen({navigation}) {
 
     return (
         <View style={styles.pageContainer}>
-            <Text style={{...styles.text,fontSize:20,marginTop:30,marginBottom:15}}>Today</Text>
+            <AppText fontFamily={""} fontWeight={"bold"} style={{...styles.text,fontSize:20,marginTop:25,marginBottom:10,color:themes[currentTheme]["dark"]}}>{i18n.t(`days.${day}`)}</AppText>
             <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {
                 periods.length ? periods.map((period,index) =>
                 <View key={`period-${index}`} style={{backgroundColor:themes[currentTheme]["period-home"],padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5,"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0,borderColor:themes[currentTheme]["faint-2"]}}>
-                    <Text style={{fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                    <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
+                    <AppText fontFamily={""} style={{fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(period.from)} - {getTimeString(period.to)}</AppText>
+                    <AppText fontFamily={""} style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</AppText>
                     <View style={{flexDirection:"column",width:"100%"}}>
-                        {period.location && <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>}
-                        {period.instructor && <Text style={{fontSize:15,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
+                        {period.location && <AppText fontFamily={""} style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</AppText>}
+                        {period.instructor && <AppText fontFamily={""} style={{fontSize:15,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</AppText>}
                         
                     </View>
                     <View style={{position:"absolute",top:0,left:0,margin:5,borderRadius:5,backgroundColor:themes[currentTheme]["faint"],height:25,aspectRatio:1,alignContent:"center",alignItems:"center"}}>
-                        <Text style={{color:themes[currentTheme]["period-home"],fontWeight:"bold"}}>{index+1}</Text>
+                        <AppText fontFamily={""} style={{color:themes[currentTheme]["period-home"],fontWeight:"bold"}}>{index+1}</AppText>
                     </View>
                 </View>
                 )
                 :
-                <Text style={{...styles.text,fontSize:40,textAlign:"center"}}>No Periods Today.</Text>
+                <AppText fontFamily={""} style={{...styles.text,fontSize:40,textAlign:"center"}}>{i18n.t("home.no-periods")}</AppText>
             }
             </ScrollView>
             

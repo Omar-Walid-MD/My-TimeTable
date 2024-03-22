@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import sliceReducer from './slice/slice'
-import themeReducer from './slice/themeSlice'
+import settingsReducer from './slice/settingsSlice'
+import popupsReducer from './slice/popupsSlice'
 export default configureStore({
   reducer: {
     tables: sliceReducer,
-    theme: themeReducer
+    settings: settingsReducer,
+    popups: popupsReducer
   },
 })

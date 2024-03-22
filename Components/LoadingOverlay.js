@@ -1,6 +1,7 @@
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, View, Animated, Easing, Text } from 'react-native';
+
 function LoadingOverlay({visible}) {
 
     const rotation = useState(new Animated.Value(0))[0];
