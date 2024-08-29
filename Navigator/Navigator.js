@@ -3,11 +3,11 @@ import HomeScreen from "../Screens/HomeScreen";
 import { StyleSheet } from "react-native";
 import { useDispatch, useSelector } from 'react-redux';
 import TimetableScreen from '../Screens/TimetableScreen';
-import { getCurrentTable, getTables } from '../Store/slice/slice';
 import NavBar from '../Components/Navbar';
 import SettingsScreen from '../Screens/SettingsScreen';
-import { getLang, getMinutes, getTheme } from '../Store/slice/settingsSlice';
 import { useEffect } from 'react';
+import { getCurrentTable, getTables } from '../Store/Tables/tablesSlice';
+import { getLang, getMinutes, getTheme } from '../Store/Settings/settingsSlice';
 
 const Tab = createMaterialTopTabNavigator();
 

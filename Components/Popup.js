@@ -6,7 +6,7 @@ import { removePopup } from '../Store/slice/popupsSlice';
 
 import { FontAwesome5 } from 'react-native-vector-icons'
 import themes from '../themes';
-import AppText from './AppText';
+import AppText from './Text';
 
 function Popup({popup}) {
 

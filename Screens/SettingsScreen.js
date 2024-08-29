@@ -1,16 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, View, Image, Pressable, ScrollView } from 'react-native';
+import { Button, StyleSheet, View, Image, Pressable, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons'
 import themes from '../themes';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { setLang, setMinutes, setTheme } from '../Store/slice/settingsSlice';
+import { setLang, setMinutes, setTheme } from '../Store/Settings/settingsSlice';
 import { addPeriodNotification, cancelAllNotifications } from '../notifications';
-import { updateTables } from '../Store/slice/slice';
+import { updateTables } from '../Store/Tables/tablesSlice';
 import LoadingOverlay from '../Components/LoadingOverlay';
 import PopupContainer from '../Components/PopupContainer';
-import { addPopup, clearPopups } from '../Store/slice/popupsSlice';
-import AppText from "../Components/AppText"
+import { addPopup, clearPopups } from '../Store/Popups/popupsSlice';
+import Text from "../Components/Text"
 
 import notifee from "@notifee/react-native"
 import i18n from '../i18n';
@@ -62,7 +62,7 @@ export default function SettingsScreen({navigation}) {
         <View style={styles.pageContainer}>
             <View style={{width:"100%",gap:40,padding:20}}>
                 <View style={{width:"100%",alignItems:"center",gap:15}}>
-                    <AppText fontFamily={""} style={{fontSize:20,borderBottomWidth:2,borderColor:"black",paddingBottom:5}}>{i18n.t("settings.theme")}</AppText>
+                    <Text fontFamily={""} style={{fontSize:20,borderBottomWidth:2,borderColor:"black",paddingBottom:5}}>{i18n.t("settings.theme")}</Text>
                     
                     <View style={{flexDirection:"row",gap:10,paddingHorizontal:50,flexWrap:"wrap",justifyContent:"center"}}>
                     {
@@ -72,14 +72,14 @@ export default function SettingsScreen({navigation}) {
                         style={currentTheme===theme ? {...styles.button,width:100,...styles.bgCurrent} : {...styles.button,width:100,borderColor:themes[theme]["current"],borderWidth:2}}
                         onPress={()=>{dispatch(setTheme(theme)).then(()=>popup("theme"));}}
                         >
-                            <AppText fontFamily={""} fontWeight={"bold"} style={{fontSize:20,textTransform:"capitalize",color:themes[theme][currentTheme===theme ? "bg" : "current"]}}>{i18n.t(`settings.${theme}`)}</AppText>
+                            <Text fontFamily={""} fontWeight={"bold"} style={{fontSize:20,textTransform:"capitalize",color:themes[theme][currentTheme===theme ? "bg" : "current"]}}>{i18n.t(`settings.${theme}`)}</Text>
                         </Pressable>
                         )
                     }
                     </View>
                 </View>
                 <View style={{width:"100%",alignItems:"center",gap:20}}>
-                    <AppText fontFamily={""} style={{fontSize:20,borderBottomWidth:2,borderColor:"black",paddingBottom:5}}>{i18n.t("settings.notify-before")}</AppText>
+                    <Text fontFamily={""} style={{fontSize:20,borderBottomWidth:2,borderColor:"black",paddingBottom:5}}>{i18n.t("settings.notify-before")}</Text>
                     <View style={{flexWrap:"",flexDirection:"row",gap:10}}>
                     {
                         minutesOptions.map((minutes)=>
@@ -88,14 +88,14 @@ export default function SettingsScreen({navigation}) {
                         key={`minute-option-${minutes}`}
                         onPress={()=>{if(currentMinutes!==minutes){dispatch(setMinutes(minutes));refreshNotifications(minutes);}}}
                         >
-                            <AppText fontFamily={""} style={{color:currentMinutes===minutes ? "white" : "black"}}>{minutes}</AppText>
+                            <Text fontFamily={""} style={{color:currentMinutes===minutes ? "white" : "black"}}>{minutes}</Text>
                         </Pressable>
                         )
                     }
                     </View>
                 </View>
                 <View style={{width:"100%",alignItems:"center",gap:20}}>
-                    <AppText fontFamily={""} style={{fontSize:20,borderBottomWidth:2,borderColor:"black",paddingBottom:5}}>{i18n.t("settings.lang")}</AppText>
+                    <Text fontFamily={""} style={{fontSize:20,borderBottomWidth:2,borderColor:"black",paddingBottom:5}}>{i18n.t("settings.lang")}</Text>
                     <View style={{flexWrap:"",flexDirection:"row",gap:10}}>
                     {
                         langOptions.map((lang)=>
@@ -110,7 +110,7 @@ export default function SettingsScreen({navigation}) {
                             })
                         }}
                         >
-                            <AppText fontFamily={""} style={{color:currentLang===lang ? "white" : "black",textTransform:"capitalize"}}>{lang}</AppText>
+                            <Text fontFamily={""} style={{color:currentLang===lang ? "white" : "black",textTransform:"capitalize"}}>{lang}</Text>
                         </Pressable>
                         )
                     }

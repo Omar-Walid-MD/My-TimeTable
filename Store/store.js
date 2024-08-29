@@ -1,11 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
-import sliceReducer from './slice/slice'
-import settingsReducer from './slice/settingsSlice'
-import popupsReducer from './slice/popupsSlice'
+import tablesReducer from './Tables/tablesSlice'
+import settingsReducer from './Settings/settingsSlice'
+import popupsReducer from './Popups/popupsSlice'
+import modalsReducer from './Modals/modalsSlice'
+
 export default configureStore({
   reducer: {
-    tables: sliceReducer,
+    tables: tablesReducer,
     settings: settingsReducer,
-    popups: popupsReducer
+    popups: popupsReducer,
+    modals: modalsReducer
   },
 })

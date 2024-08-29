@@ -7,34 +7,31 @@ import store from './Store/store';
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 import styles from './styles';
+
+import { Cairo_400Regular as Cairo,Cairo_600SemiBold as Cairo_sb, Cairo_700Bold as Cairo_b } from '@expo-google-fonts/cairo';
+import { Ubuntu_400Regular as Ubuntu, Ubuntu_500Medium as Ubuntu_sb, Ubuntu_700Bold as Ubuntu_b} from "@expo-google-fonts/ubuntu";
 import { useFonts } from 'expo-font';
-import { useCallback } from 'react';
+import { cancelAllNotifications } from './notifications';
+
 
 export default function App() {
 
 	ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-	const [loaded] = useFonts({
-		// "Cairo": require("./assets/fonts/Cairo-Regular.ttf"),
-		// "Cairo-bold": require("./assets/fonts/Cairo-Bold.ttf"),
-		"Alexandria": require("./assets/fonts/Alexandria-Regular.ttf"),
-		"Alexandria-bold": require("./assets/fonts/Alexandria-Bold.ttf"),
-		"Alexandria-semibold": require("./assets/fonts/Alexandria-SemiBold.ttf"),
-
-
-		"NotoKufiArabic": require("./assets/fonts/NotoKufiArabic-Regular.ttf"),
-		"NotoKufiArabic-bold": require("./assets/fonts/NotoKufiArabic-Bold.ttf"),
-		"NotoKufiArabic-semibold": require("./assets/fonts/NotoKufiArabic-SemiBold.ttf"),
-
+	
+	let [fontsLoaded] = useFonts({
+		Cairo, Cairo_sb, Cairo_b,
+		Ubuntu, Ubuntu_sb, Ubuntu_b
 	});
 
-	const onLayoutRootView = useCallback(async () => {
-		if (loaded) {
-		  await SplashScreen.hideAsync();
-		}
-	  }, [loaded]);
+	if (!fontsLoaded) {
+		return null;
+	}
+
+	// cancelAllNotifications();
+	
 
 	return (
-		<Provider store={store} onLayout={onLayoutRootView}>
+		<Provider store={store}>
 			<NavigationContainer style={styles.container}>
 				<Navigator />
 			</NavigationContainer>
