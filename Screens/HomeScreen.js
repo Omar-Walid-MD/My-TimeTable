@@ -7,20 +7,20 @@ import { useSelector } from 'react-redux';
 import store from '../Store/store';
 import { useEffect, useState } from 'react';
 import * as Localization from "expo-localization";
-import i18n from '../i18n';
 import Text from '../Components/Text';
+import { useTranslation } from 'react-i18next';
 
 export default function HomeScreen({navigation}) {
+
+    const { t } = useTranslation();
     
     const styles = useSelector(store => store.settings.styles);
     const currentTheme = useSelector(store => store.settings.theme);
 
     const tables = useSelector(store => store.tables.tables);
     const currentTable = useSelector(store => store.tables.currentTable);
-    const currentLang = useSelector(store => store.settings.lang);
 
     let day = new Date().getDay();
-    // day = "sat";
     
     const [periods,setPeriods] = useState([]);
     const [currentPeriod,setCurrentPeriod] = useState(null);
@@ -79,26 +79,32 @@ export default function HomeScreen({navigation}) {
     },[tables]);
 
     return (
-        <View style={styles.pageContainer}>
-            <Text fontFamily={""} fontWeight={"bold"} style={{...styles.text,fontSize:20,marginTop:25,marginBottom:10,color:themes[currentTheme]["dark"]}}>{i18n.t(`days.${day}`)}</Text>
+        <View style={styles["page-container"]}>
+
+            <Text weight='b'
+            //style[text col-dark fontSize:20 marginTop:25 marginBottom:10]
+            style={{...styles['text'],...styles['col-dark'],fontSize:20,marginTop:25,marginBottom:10}}>
+            {t(`days.0`)}</Text>
+
             <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {
                 periods.length ? periods.map((period,index) =>
-                <View key={`period-${index}`} style={{backgroundColor:themes[currentTheme]["period-home"],padding:20,alignItems:"center",width:"100%",borderRadius:10,shadowColor:"black",elevation:5,"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0,borderColor:themes[currentTheme]["faint-2"]}}>
-                    <Text fontFamily={""} style={{fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                    <Text fontFamily={""} style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
+                <View key={`period-${index}`}
+                style={{...styles["home-period-container"],"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0}}>
+                    <Text style={{...styles["color-faint"],fontSize:15}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
+                    <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
                     <View style={{flexDirection:"column",width:"100%"}}>
-                        {period.location && <Text fontFamily={""} style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>}
-                        {period.instructor && <Text fontFamily={""} style={{fontSize:15,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
+                        {period.location && <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>}
+                        {period.instructor && <Text style={{fontSize:15,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
                         
                     </View>
-                    <View style={{position:"absolute",top:0,left:0,margin:5,borderRadius:5,backgroundColor:themes[currentTheme]["faint"],height:25,aspectRatio:1,alignContent:"center",alignItems:"center"}}>
-                        <Text fontFamily={""} style={{color:themes[currentTheme]["period-home"],fontWeight:"bold"}}>{index+1}</Text>
+                    <View style={{...styles["bg-faint"],position:"absolute",top:0,left:0,margin:5,borderRadius:5,height:25,aspectRatio:1,justifyContent:"center",alignItems:"center"}}>
+                        <Text style={{...styles["color-period-home"]}}>{index+1}</Text>
                     </View>
                 </View>
                 )
                 :
-                <Text fontFamily={""} style={{...styles.text,fontSize:40,textAlign:"center"}}>{i18n.t("home.no-periods")}</Text>
+                <Text style={{...styles["text"],fontSize:30,textAlign:"center"}}>{t("home.no-periods")}</Text>
             }
             </ScrollView>
             

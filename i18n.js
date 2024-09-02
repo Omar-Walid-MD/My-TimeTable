@@ -7,7 +7,7 @@ import { initReactI18next } from "react-i18next";
 import translations from "./Translations/translations.json"
 
 
-const deviceLang = Localization.locale.slice(0,2);
+const deviceLang = Localization.getLocales()[0].languageCode.slice(0,2);
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({

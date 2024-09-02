@@ -5,7 +5,6 @@ import themes from '../themes';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAddTableModal, setPeriodInForm, setPeriodModalForm, setTableSettingsModal } from '../Store/Modals/modalsSlice';
-import i18n from '../i18n';
 import PopupContainer from '../Components/PopupContainer';
 import Text from '../Components/Text';
 import PeriodFormModal from '../Components/Modals/PeriodFormModal';
@@ -14,34 +13,22 @@ import { setPeriodToView } from '../Store/Modals/modalsSlice';
 import PeriodViewModal from '../Components/Modals/PeriodViewModal';
 import TableSettingsModal from '../Components/Modals/TableSettingsModal';
 import AddTableModal from '../Components/Modals/AddTableModal';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 
 export default function TimetableScreen({navigation}) {
 
     const styles = useSelector(store => store.settings.styles);
-    const currentTheme = useSelector(store => store.settings.theme);
-    const currentLang = useSelector(store => store.settings.lang);
+    const { t } = useTranslation();
 
     const s = 150;
     const dispatch = useDispatch();
-
-    // const tableTemplate = {
-    //     name: i18n.t("tables.untitled"),
-    //     content: [
-    //         [],
-    //         [],
-    //         [],
-    //         [],
-    //         []
-    //     ]
-    // }
 
     const tables = useSelector(store => store.tables.tables);
     const currentTable = useSelector(store => store.tables.currentTable);
 
     const [tableIndex,setTableIndex] = useState(currentTable || 0);
-
-    const colors = themes[currentTheme]["period-colors"];
 
     useEffect(()=>{
         setTableIndex(currentTable);
@@ -51,23 +38,22 @@ export default function TimetableScreen({navigation}) {
         if(tableIndex >= tables.length) setTableIndex(tables.length-1);
     },[tables.length]);
 
-    console.log(tableIndex);
-
-
     return (
-        <View style={styles.pageContainer}>
+        <View style={styles["page-container"]}>
             <View style={{flexDirection:"row",width:"100%",paddingHorizontal:10,paddingBottom:20}}>
 
-                <ScrollView style={{width:"100%",padding:20,paddingBottom:4}} contentContainerStyle={{flexDirection:"row",flexGrow:1,paddingEnd:40,alignItems:"center",gap:20}} horizontal>
+                <ScrollView style={{width:"100%",padding:20,paddingBottom:4}} contentContainerStyle={{flexDirection:"row",
+                    
+                    flexGrow:1,alignItems:"center",gap:20}} horizontal>
                 {
                     tables.map((table,index)=>
-                    <View style={{flexDirection:"row",alignItems:"center",gap:20,...(tableIndex===index ? styles.tableTabActive : styles.tableTab)}} key={`table-${index}`}>
+                    <View style={{flexDirection:"row",alignItems:"center",gap:20,...(tableIndex===index ? styles["table-tab-active"] : styles["table-tab"])}} key={`table-${index}`}>
                         <Pressable onPress={()=>setTableIndex(index)}>
                         {
                             currentTable === index ?
-                            <Text fontFamily={""} style={{...styles.text,fontSize:20,backgroundColor:themes[currentTheme]["current"],color:"white",paddingHorizontal:4,padding:2,borderRadius:5}}>{table.name}</Text>
+                            <Text style={{...styles["text"],...styles["bg-current"],fontSize:20,color:"white",paddingHorizontal:4,padding:2,borderRadius:5}}>{table.name}</Text>
                             :
-                            <Text fontFamily={""} style={{...styles.text,fontSize:20,color:tableIndex===index ? "black" : themes[currentTheme]["faint"]}}>{table.name}</Text>
+                            <Text style={{...styles["text"],fontSize:20,...(tableIndex===index ? {color:"black"} : styles["color-faint"])}}>{table.name}</Text>
                         }
                         </Pressable>
                         {
@@ -82,7 +68,7 @@ export default function TimetableScreen({navigation}) {
                     </View>
                     )
                 }
-                    <Pressable style={{backgroundColor:themes[currentTheme]["faint"],borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>{
+                    <Pressable style={{...styles["bg-faint"],borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>{
                         dispatch(setAddTableModal(true));
                     }}>
                         <Octicons name='plus' size={20} color="white" />
@@ -97,7 +83,7 @@ export default function TimetableScreen({navigation}) {
                     {
                         Array.from({length:5}).map((x,index)=>
                         <View style={{width:s,alignItems:"center",paddingBottom:10}} key={`day-tab-${index}`}>
-                            <Text fontFamily={""} style={{...styles.text,fontSize:20,textTransform:"uppercase"}}>{i18n.t(`days.${index}`)}</Text>
+                            <Text style={{...styles.text,fontSize:20,textTransform:"uppercase"}}>{t(`days.${index}`)}</Text>
                         </View>
                         )
                     }
@@ -119,10 +105,11 @@ export default function TimetableScreen({navigation}) {
                                             dispatch(setPeriodToView(period));
                                         }}
                                         key={`table-period-${dayIndex}-${periodIndex}`}>
-                                            <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",backgroundColor:colors[(dayIndex*2+periodIndex)%colors.length],borderRadius:5,shadowColor:"black",elevation:5}}>
-                                                <Text fontFamily={""} fontWeight={"bold"} style={{textAlign:"center",fontSize:15,margin:5,lineHeight:20}} numberOfLines={3}>{period.title}</Text>
-                                                <Text fontFamily={""} style={{position:"absolute",top:0,...styles.positionLeft,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                                                <Text fontFamily={""} style={{position:"absolute",bottom:0,...styles.positionLeft,padding:5,fontSize:10}}>{period.location}</Text>
+                                            <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",borderRadius:5,shadowColor:"black",elevation:5,
+                                                ...styles[`bg-period-${(dayIndex*2+periodIndex)%4+1}`]}}>
+                                                <Text weight='b' style={{textAlign:"center",fontSize:15,margin:5,lineHeight:20}} numberOfLines={3}>{period.title}</Text>
+                                                <Text style={{position:"absolute",top:0,...styles.positionLeft,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
+                                                <Text style={{position:"absolute",bottom:0,...styles.positionLeft,padding:5,fontSize:10}}>{period.location}</Text>
                                             </View>
                                         </Pressable>
                                         )
@@ -141,7 +128,7 @@ export default function TimetableScreen({navigation}) {
                                             }));
                                             dispatch(setPeriodModalForm("add"));
                                         }}>
-                                            <View style={{width:"100%",alignItems:"center",justifyContent:"center",backgroundColor:themes[currentTheme]["period-none"],height:"100%",borderRadius:5,shadowColor:"black",elevation:5}}>
+                                            <View style={{...styles["bg-period-none"],width:"100%",alignItems:"center",justifyContent:"center",height:"100%",borderRadius:5,shadowColor:"black",elevation:5}}>
                                                 <View style={{backgroundColor:"white",paddingHorizontal:8,paddingVertical:2,borderRadius:5}}>
                                                     <Octicons name='plus' size={30} color="gray" />
                                                 </View>

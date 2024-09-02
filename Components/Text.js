@@ -2,6 +2,7 @@ import { Text as RN_Text } from 'react-native';
 import styles from "../styles";
 import PropTypes from 'prop-types';
 import i18n from '../i18n';
+import { useSelector } from 'react-redux';
 
 /**
  * MyComponent description
@@ -12,9 +13,14 @@ import i18n from '../i18n';
 
 export default function Text(props) {
 
-    const fontFamily = props.font==="main" || !props.font ? (i18n.language==="ar" ? "Cairo" : "Ubuntu") : "";
+    const threshold = 1569;
 
-    // if(!fontFamily)
+    let text = props.children;
+    if(typeof text === "number") text = `${text}`;
+    else if(typeof text === "object") text = `${text[0]}`;
+
+
+    const fontFamily = props.font==="main" || !props.font ? (text.charCodeAt(0)>=threshold ? "Cairo" : "Ubuntu") : "";
 
     const font = `${fontFamily}${props.weight ? "_" : ""}${props.weight || ""}`;
     return (

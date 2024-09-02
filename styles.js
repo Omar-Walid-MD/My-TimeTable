@@ -2,19 +2,9 @@ import { StyleSheet } from 'react-native';
 import themes from './themes';
 
 
-const values = {
-	"row": "row-reverse",
-	"row-reverse": "row",
-	"left": "right",
-	"right": "left"
-}
 
-function getValue(value,lang)
-{
-	return lang==="ar" ? values[value] : value;
-}
 
-function getStyles(themeName,lang)
+function getStyles(themeName)
 {
 	const theme = themes[themeName]
 	return  StyleSheet.create({
@@ -25,7 +15,7 @@ function getStyles(themeName,lang)
 			justifyContent: 'center',
 		},
 
-		pageContainer: {
+		"page-container": {
 			alignItems: "center",
 			writingDirection:"ltr",
 			width: "100%",
@@ -48,7 +38,7 @@ function getStyles(themeName,lang)
 			color: theme["text"]
 		},
 
-		textInput: {
+		"text-input": {
 			backgroundColor:"white",
 			fontSize:20,
 			padding:5,
@@ -56,14 +46,13 @@ function getStyles(themeName,lang)
 			borderWidth:1,
 			borderRadius:5,
 			pointerEvents:"auto",
-			textAlign: getValue("left",lang),
 			
 		},
 
-		tableTab: {
+		"table-tab": {
 			paddingBottom:10
 		},
-		tableTabActive: {
+		"table-tab-active": {
 			paddingBottom:10,
 			borderBottomWidth:2
 		},
@@ -78,58 +67,125 @@ function getStyles(themeName,lang)
 			gap:5
 		},
 
-		borderPrimary: {
+		"border-primary": {
 			borderColor: theme["primary"]
 		},
-		borderDanger: {
+		"border-danger": {
 			borderColor: theme["danger"]
 		},
-		borderSuccess: {
+		"border-success": {
 			borderColor: theme["success"],
 		},
-		borderCurrent: {
+		"border-current": {
 			borderColor: theme["current"],
 		},
+		"border-faint": {
+			borderColor: theme["faint"],
+		},
 
-		colorPrimary: {
+
+
+		"color-primary": {
 			color: theme["primary"]
 		},
-		colorDanger: {
+		"color-danger": {
 			color: theme["danger"]
 		},
-		colorSuccess: {
+		"color-success": {
 			color: theme["success"]
 		},
-		colorCurrent: {
+		"color-current": {
 			color: theme["current"]
 		},
+		"color-dark": {
+			color: theme["dark"]
+		},
+		"color-faint": {
+			color: theme["faint"]
+		},
+		"color-faint-2": {
+			color: theme["faint-2"]
+		},
+		"color-period-home": {
+			color: theme["period-home"]
+		},
+		"color-selected": {
+			color: theme["selected"]
+		},
 
-		bgPrimary: {
+
+
+		"bg-main": {
+			backgroundColor: theme["bg"]
+		},
+
+		"bg-dark": {
+			backgroundColor: theme["dark"]
+		},
+
+		"bg-selected": {
+			backgroundColor: theme["selected"]
+		},
+
+		"bg-faint": {
+			backgroundColor: theme["faint"]
+		},
+
+		"bg-faint-light": {
+			backgroundColor: theme["faint-2"]
+		},
+
+		"bg-period-home": {
+			backgroundColor: theme["period-home"]
+		},
+
+		"bg-period-none": {
+			backgroundColor: theme["period-none"]
+		},
+
+		"bg-period-1" : {
+			backgroundColor: "rgb(255,255,200)"
+		},
+
+		"bg-period-2" : {
+			backgroundColor: "rgb(200,255,255)"
+		},
+
+		"bg-period-3" : {
+			backgroundColor: "rgb(200,255,200)"
+		},
+
+		"bg-period-4" : {
+			backgroundColor: "rgb(200,255,200)"
+		},
+
+
+		"bg-primary": {
 			backgroundColor: theme["primary"]
 		},
-		bgDanger: {
+		"bg-danger": {
 			backgroundColor: theme["danger"]
 		},
-		bgSuccess: {
+		"bg-success": {
 			backgroundColor: theme["success"],
 		},
-		bgCurrent: {
+		"bg-current": {
 			backgroundColor: theme["current"],
 		},
 
-		flexRow: {
-			flexDirection: getValue("row",lang)
-		},
-		textLeft: {
-			textAlign: getValue("left",lang)
+		"flex-row": {
+			flexDirection: "row"
 		},
 
-		positionLeft: {
-			[getValue("left",lang)]: 0
-		},
-
-		positionRight: {
-			[getValue("right",lang)]: 0
+		"home-period-container": {
+			backgroundColor:theme["period-home"],
+			padding:20,
+			alignItems:"center",
+			width:"100%",
+			borderRadius:10,
+			shadowColor:"black",
+			elevation:5,
+			borderColor:theme["faint-2"]
 		}
   });
 

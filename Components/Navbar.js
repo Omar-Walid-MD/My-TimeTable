@@ -6,7 +6,7 @@ import themes from '../themes';
 import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { clearPopups } from '../Store/slice/popupsSlice';
+import { clearPopups } from '../Store/Popups/popupsSlice';
 
 export default function NavBar({state, descriptors, navigation, position})
 {
@@ -20,7 +20,7 @@ export default function NavBar({state, descriptors, navigation, position})
         "Home": {
             icon: "home",
             size: 40,
-            style: {}
+            style: {alignItems:"flex-start"}
         },
         "Timetable": {
             icon: "timetable",
@@ -41,7 +41,7 @@ export default function NavBar({state, descriptors, navigation, position})
 
     return (
 
-        <View style={styles.navbar}>
+        <View style={styles["navbar"]}>
             {state.routes.map((route, index) => {
                 const { options } = descriptors[route.key];
                 const label =
@@ -85,18 +85,12 @@ export default function NavBar({state, descriptors, navigation, position})
                 style={{...buttons[label].style,flexGrow:1}}
                 key={`tab-button-${index}`}
                 >
-                <MaterialCommunityIcons name={buttons[label].icon} size={buttons[label].size} color={state.index===index ? themes[currentTheme]["selected"] : themes[currentTheme]["faint"]} />
+                <MaterialCommunityIcons name={buttons[label].icon} size={buttons[label].size} style={{...(state.index===index ? styles["color-selected"] : styles["color-faint"])}} color={state.index===index ? themes[currentTheme]["selected"] : themes[currentTheme]["faint"]} />
             </Pressable>
            
                 );
             })}
-            {/* <Pressable onPress={()=>navigation.navigate("Home")}>
-                <MaterialCommunityIcons name='home' size={40} color={route.name==="Home" ? "#C8FFC8" : themes[currentTheme]["faint"]} />
-            </Pressable>
-           
-            <Pressable style={{paddingTop:5}} onPress={()=>navigation.navigate("Timetable")}>
-                <MaterialCommunityIcons name='timetable' size={35} color={route.name==="Timetable" ? "#C8FFC8" : themes[currentTheme]["faint"]} />
-            </Pressable> */}
+
 
         </View>
     );

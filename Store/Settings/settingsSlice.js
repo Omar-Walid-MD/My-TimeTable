@@ -1,13 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-community/async-storage'
 import getStyles from '../../styles';
-import i18n from '../../i18n';
+import i18n, { changeLanguage } from '../../i18n';
 
 const initialState = {
     theme: "green",
     styles: getStyles("green"),
     minutes: 5,
-    lang: "en",
+    lang: "",
     loading: true,
 }
 
@@ -44,6 +44,7 @@ export const getLang = createAsyncThunk(
   'settings/getLang',
   async () => {
     const res = await AsyncStorage.getItem("lang");
+    console.log("from storage",res);
     return res;
 });
 
@@ -67,7 +68,7 @@ export const settingsSlice = createSlice({
       })
       .addCase(getTheme.fulfilled, (state, action) => {
         state.theme = action.payload || "green";
-        state.styles = getStyles(action.payload || "green",state.lang);
+        state.styles = getStyles(action.payload || "green");
         state.loading = false;
       })
       .addCase(getTheme.rejected, (state, action) => {
@@ -80,7 +81,7 @@ export const settingsSlice = createSlice({
       })
       .addCase(setTheme.fulfilled, (state, action) => {
         state.theme = action.payload;
-        state.styles = getStyles(action.payload,state.lang);
+        state.styles = getStyles(action.payload);
         state.loading = false;
       })
       .addCase(setTheme.rejected, (state, action) => {
@@ -116,9 +117,8 @@ export const settingsSlice = createSlice({
         state.loading = true;
       })
       .addCase(getLang.fulfilled, (state, action) => {
-        i18n.locale = action.payload;
-        state.lang = action.payload || "en";
-        state.styles = getStyles(state.theme,state.lang);
+        state.lang = action.payload;
+        state.styles = getStyles(state.theme);
         state.loading = false;
       })
       .addCase(getLang.rejected, (state, action) => {
@@ -130,9 +130,7 @@ export const settingsSlice = createSlice({
         state.loading = true;
       })
       .addCase(setLang.fulfilled, (state, action) => {
-        i18n.locale = action.payload;
         state.lang = action.payload;
-        state.styles = getStyles(state.theme,state.lang);
         state.loading = false;
       })
       .addCase(setLang.rejected, (state, action) => {

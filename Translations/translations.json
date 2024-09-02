@@ -83,13 +83,13 @@
     
     "en": {
         "days": {
-            "sat": "Sat",
-            "sun": "Sun",
-            "mon": "Mon",
-            "tue": "Tue",
-            "wed": "Wed",
-            "thu": "Thu",
-            "fri": "Fri"
+            "0": "SAT",
+            "1": "SUN",
+            "2": "MON",
+            "3": "TUE",
+            "4": "WED",
+            "5": "THU",
+            "6": "FRI"
         },
         "home": {
             "today": "Today",

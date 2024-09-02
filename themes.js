@@ -12,12 +12,6 @@ const themes = {
         "current": "rgb(35, 150, 35)",
         "period-home": "#E6FFE6",
         "period-none":"rgb(120, 120, 120)",
-        "period-colors": [
-            "rgb(255,255,200)",
-            "rgb(200,255,255)",
-            "rgb(200,255,200)",
-            "rgb(255,220,220)"
-        ]
     },
     "blue": {
         "bg": "#E6F0FF",
@@ -32,12 +26,6 @@ const themes = {
         "current": "#2873FF",
         "period-home": "#E1EBFF",
         "period-none":"rgb(120, 120, 120)",
-        "period-colors": [
-            "rgb(255,255,200)",
-            "rgb(200,255,255)",
-            "rgb(200,255,200)",
-            "rgb(255,220,220)"
-        ]
     },
     "red": {
         "bg": "#FFE5E9",
@@ -52,12 +40,6 @@ const themes = {
         "current": "#FE2839",
         "period-home": "#FFE1E3",
         "period-none":"rgb(120, 120, 120)",
-        "period-colors": [
-            "rgb(255,255,200)",
-            "rgb(200,255,255)",
-            "rgb(200,255,200)",
-            "rgb(255,220,220)"
-        ]
     },
     "yellow": {
         "bg": "#F6F1DD",
@@ -72,12 +54,6 @@ const themes = {
         "current": "#E1AF09",
         "period-home": "#F7F3DA",
         "period-none":"rgb(120, 120, 120)",
-        "period-colors": [
-            "rgb(255,255,200)",
-            "rgb(200,255,255)",
-            "rgb(200,255,200)",
-            "rgb(255,220,220)"
-        ]
     }
 }
 

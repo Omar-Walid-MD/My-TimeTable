@@ -7,15 +7,14 @@ import { MaterialCommunityIcons, MaterialIcons, Octicons, Feather } from 'react-
 import { getTimeString, popup } from '../../helper';
 import { deletePeriod, updateTables } from '../../Store/Tables/tablesSlice';
 import { cancelNotification } from '../../notifications';
-import themes from '../../themes';
 import Text from '../Text';
-import i18n from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 export default function PeriodViewModal({tables, tableIndex}) {
 
-    const dayStrings = ["sat","sun","mon","tue","wed","thu"]
 
     const dispatch  = useDispatch();
+    const { t } = useTranslation();
 
     const styles = useSelector(store => store.settings.styles);
     const currentTheme = useSelector(store => store.settings.theme);
@@ -31,42 +30,47 @@ export default function PeriodViewModal({tables, tableIndex}) {
     }
 
     return (
-        <Modal visible={periodToView!==null} animationType='slide' transparent>
+        <Modal visible={periodToView!==null} animationType='slide' transparent onRequestClose={() => dispatch(setPeriodToView(null))}>
             <View style={{width:"100%",flex:1,alignItems:"center",justifyContent:"center",backgroundColor:"rgba(0,0,0,0.5)"}}>
-                <View style={{width:"90%",backgroundColor:themes[currentTheme]["bg"],padding:20,paddingTop:40,borderRadius:10,alignItems:"center"}}>
+                <View style={{...styles["bg-main"],width:"90%",padding:15,paddingTop:40,borderRadius:10,alignItems:"center"}}>
 
                     {
                         periodToView &&
 
                         <View style={{alignItems:"center",gap:10,marginBottom:20}}>
-                            <Text fontFamily={""} style={{...styles.text,fontSize:15,color:themes[currentTheme]["faint"]}}>{getTimeString(periodToView.from)} - {getTimeString(periodToView.to)}</Text>
-                            <Text fontFamily={""} style={{...styles.text,fontSize:40,textAlign:"center",marginBottom:20}}>{periodToView.title}</Text>
-                            {periodToView.location && <Text fontFamily={""} style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint-2"],textTransform:"capitalize",textAlign:"center"}}>{i18n.t("home.at")}: {periodToView.location}</Text>}
-                            {periodToView.instructor && <Text fontFamily={""} style={{...styles.text,fontSize:20,color:themes[currentTheme]["faint"],textTransform:"capitalize",textAlign:"center"}}>{i18n.t("home.by")}: {periodToView.instructor}</Text>}
+                            <Text style={{...styles.text,...styles["color-faint"],fontSize:15}}>{getTimeString(periodToView.from)} - {getTimeString(periodToView.to)}</Text>
+                            <Text style={{...styles.text,fontSize:40,textAlign:"center",marginBottom:20}}>{periodToView.title}</Text>
+                            {periodToView.location && <Text style={{...styles.text,...styles["color-faint-2"],fontSize:20,textTransform:"capitalize",textAlign:"center"}}>{t("home.at")}: {periodToView.location}</Text>}
+                            {periodToView.instructor && <Text style={{...styles.text,...styles["color-faint"],fontSize:20,...styles["color-faint"],textTransform:"capitalize",textAlign:"center"}}>{t("home.by")}: {periodToView.instructor}</Text>}
                         </View>
                     }
 
                     <View style={{gap:10}}>
-                        <Pressable style={{...styles.button,...styles.bgPrimary}} onPress={()=>{
+                        <Pressable style={{...styles["button"],...styles["bg-primary"]}} onPress={()=>{
                             dispatch(setPeriodModalForm("edit"));
                             dispatch(setPeriodInForm(periodToView));
                             dispatch(setPeriodToView(null));
                         }}>
                             <MaterialCommunityIcons name="pencil-box-outline" color="white" size={30} />
-                            <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.edit")}</Text>
+                            <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.edit")}</Text>
                         </Pressable>
 
-                        <Pressable style={{...styles.button,...styles.bgDanger}} onPress={()=>handleDeletePeriod(periodToView)}>
+                        <Pressable style={{...styles["button"],...styles["bg-danger"]}} onPress={()=>handleDeletePeriod(periodToView)}>
                             <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
-                            <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{i18n.t("tables.delete")}</Text>
+                            <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.delete")}</Text>
                         </Pressable>
                     </View>
 
-                    <Pressable style={{position:"absolute",top:0,...styles.positionRight,padding:5,margin:10,borderRadius:5,backgroundColor:"black"}} onPress={()=>{
-                        dispatch(setPeriodToView(null));
-                    }}>
-                        <Feather name="x" size={20} color="white" />
-                    </Pressable>
+                    <View
+                    //style[position:"absolute" top:0 width:"100%"]
+                    style={{position:"absolute",top:0,width:"100%",alignItems:"flex-end",paddingTop:15}}
+                    >
+                        <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>{
+                            dispatch(setPeriodToView(null));
+                        }}>
+                            <Feather name="x" size={20} color="white" />
+                        </Pressable>
+                    </View>
 
                 </View>
             </View>

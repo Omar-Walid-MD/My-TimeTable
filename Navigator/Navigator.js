@@ -5,9 +5,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import TimetableScreen from '../Screens/TimetableScreen';
 import NavBar from '../Components/Navbar';
 import SettingsScreen from '../Screens/SettingsScreen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getCurrentTable, getTables } from '../Store/Tables/tablesSlice';
 import { getLang, getMinutes, getTheme } from '../Store/Settings/settingsSlice';
+import { changeLanguage } from '../i18n';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -16,14 +17,26 @@ export default function Navigator()
 {
     const dispatch = useDispatch();
 
-    useEffect(()=>{
+    const currentLang = useSelector(store => store.settings.lang);
+    const loading = useSelector(store => store.settings.loading);
+    const [initialLangChange,setInitialLangChange] = useState(false);
 
+    useEffect(()=>{
         dispatch(getTables());
         dispatch(getCurrentTable());
         dispatch(getTheme());
         dispatch(getMinutes());
         dispatch(getLang());
     },[]);
+
+    useEffect(()=>{
+        if(!loading && currentLang && !initialLangChange)
+        {
+            console.log(currentLang);
+            changeLanguage(currentLang);
+            setInitialLangChange(true);
+        }
+    },[currentLang,loading]);
 
     return (
         <Tab.Navigator

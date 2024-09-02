@@ -2,16 +2,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, View, Animated, Easing, Text } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { removePopup } from '../Store/slice/popupsSlice';
+import { removePopup } from '../Store/Popups/popupsSlice';
 
 import { FontAwesome5 } from 'react-native-vector-icons'
-import themes from '../themes';
 import AppText from './Text';
 
 function Popup({popup}) {
 
     const dispatch = useDispatch();
-    const currentTheme = useSelector(store => store.settings.theme);
     const styles = useSelector(store => store.settings.styles);
 
     const duration = 5000;
@@ -44,8 +42,8 @@ function Popup({popup}) {
     },[]);
 
     return (
-        <Animated.View style={{...styles.flexRow,alignItems:"center",gap:5,position:"absolute",transform:[{translateY:y}],backgroundColor:themes[currentTheme]["current"],padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
-            <AppText fontFamily={""} style={{fontSize:15,color:"white"}}>{popup.text}</AppText>
+        <Animated.View style={{...styles["flex-row"],alignItems:"center",gap:5,position:"absolute",transform:[{translateY:y}],...styles["bg-current"],padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
+            <Text fontFamily={""} style={{fontSize:15,color:"white"}}>{popup.text}</Text>
             <FontAwesome5 name="check-circle" color="white" size={20} />
         </Animated.View>
     );

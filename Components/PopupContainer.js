@@ -9,7 +9,7 @@ function PopupContainer({}) {
     const popups = useSelector(store => store.popups.popups);
 
     return (
-        <View style={{position:"absolute",alignItems:"center",bottom:0,height:100}}>
+        <View style={{backgroundColor:"red",position:"absolute",alignItems:"center",bottom:0,height:100}}>
         {
             popups.map((popup,index) =>
             <Popup key={popup.id} popup={popup} />
