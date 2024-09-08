@@ -4328,17 +4328,17 @@ expo-keep-awake@~12.3.0:
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-12.3.0.tgz#c42449ae19c993274ddc43aafa618792b6aec408"
   integrity sha512-ujiJg1p9EdCOYS05jh5PtUrfiZnK0yyLy+UewzqrjUqIT8eAGMQbkfOn3C3fHE7AKd5AefSMzJnS3lYZcZYHDw==
 
-expo-localization@^14.8.3:
-  version "14.8.3"
-  resolved "https://registry.yarnpkg.com/expo-localization/-/expo-localization-14.8.3.tgz#c1efa8a314b6bfe38425bbc6bcce9cf9b84a802d"
-  integrity sha512-leg1e+7ocUgfNWa7Men/g16waXtdSpBMR9tCdv3CG4wztmFU8C+87VAnnVkvHi4CCUkTLzhP3y0FcE6KIWTwdw==
-  dependencies:
-    rtl-detect "^1.0.2"
-
 expo-localization@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/expo-localization/-/expo-localization-5.0.1.tgz#9b617198f4627ed5c4eea406ed1a616dbc6d44f6"
   integrity sha512-tPubS0oSO9nI3rdqnhnuhegV1REE1h3ltXNgtKX9oj9gHeZ+j7trQChF4xb1IGwaKTVm/ur1f4mkhRpQddJIUg==
+  dependencies:
+    rtl-detect "^1.0.2"
+
+expo-localization@~14.3.0:
+  version "14.3.0"
+  resolved "https://registry.yarnpkg.com/expo-localization/-/expo-localization-14.3.0.tgz#a7614114079658000f46c7e3029703c8508e0678"
+  integrity sha512-TML3TeVtwpfuSNwbhBspC9XsGJaa0TWJNh+UaR/35YP9fQiaJfVWUMSrAq84ba6rY1Pm3kti07LV8UUa505oqg==
   dependencies:
     rtl-detect "^1.0.2"
 

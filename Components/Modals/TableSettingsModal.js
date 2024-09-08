@@ -4,7 +4,7 @@ import { MaterialCommunityIcons, MaterialIcons, Octicons, Feather } from 'react-
 import { useDispatch, useSelector } from "react-redux";
 import Text from "../Text";
 import themes from '../../themes';
-import { deleteTable, editTableTitle, resetTable, setCurrentTable, updateTables } from "../../Store/Tables/tablesSlice";
+import { deleteTable, editTableTitle, resetTable, setCurrentTable, setTable } from "../../Store/Tables/tablesSlice";
 import { setTableSettingsModal } from "../../Store/Modals/modalsSlice";
 import { popup } from "../../helper";
 import { addPeriodNotification, cancelAllNotifications } from "../../notifications";
@@ -88,10 +88,10 @@ function TableSettingsModal({tables,tableIndex}) {
                 
             targetTable.content[day].forEach(async (period)=>{
                 // console.log(period.title,period.day)
-                period.notifId = await addPeriodNotification(period,currentMinutes,t("notif"));
+                period.notifId = await addPeriodNotification(period,currentMinutes,t);
             });
         });
-        dispatch(updateTables(prevTables => prevTables.map((t,i) => i===tableIndex ? targetTable : t)));
+        dispatch(setTable({tableIndex,table:targetTable}));
     }
 
     async function exportTable()
@@ -125,7 +125,7 @@ function TableSettingsModal({tables,tableIndex}) {
     return (
         <Modal visible={tableSettingsModal} animationType='slide' transparent onRequestClose={() => dispatch(setTableSettingsModal(null))}>
             <View style={{width:"100%",flex:1,alignItems:"center",justifyContent:"center",backgroundColor:"rgba(0,0,0,0.5)"}}>
-                <View style={{...styles["bg-main"],width:"90%",padding:20,paddingTop:40,borderRadius:10,alignItems:"center"}}>
+                <View style={{...styles["bg-white"],width:"90%",padding:20,paddingTop:40,borderRadius:10,alignItems:"center"}}>
                     {
                         tables[tableIndex] &&
                         <View style={{marginBottom:30}}>

@@ -33,8 +33,8 @@ export async function cancelAllNotifications()
 export async function addPeriodNotification(period,before,tr)
 {
 	const notifId = await notifee.createTriggerNotification({
-		title: `(${period.title}) ${before ? `${tr["a"]} ${before} ${tr["b"]}` : `${tr["c"]}`}!`,
-		body: `${tr["d"]} ${period.location || `${tr["e"]}`} ${tr["f"]}!`,
+		title: `(${period.title}) ${before ? `${tr("notif.a")} ${before} ${tr("notif.b")}` : `${tr("notif.c")}`}!`,
+		body: `${tr("notif.d")} ${period.location || `${tr("notif.e")}`} ${tr("notif.f")}!`,
 		android: {
 			channelId: "periodNotif",
 			sound: "default",
@@ -54,7 +54,7 @@ export async function addPeriodNotification(period,before,tr)
 		}
 	})
 	
-	// console.log("added notif at ",new Date(getFirstTimeStamp(period,before))); 
+	// console.log("added notify at ",new Date(getFirstTimeStamp(period,before))); 
 	return notifId;
 }
 

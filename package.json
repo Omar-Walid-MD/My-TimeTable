@@ -31,7 +31,7 @@
     "expo-file-system": "~15.4.5",
     "expo-font": "~11.4.0",
     "expo-intent-launcher": "~10.7.0",
-    "expo-localization": "^14.8.3",
+    "expo-localization": "~14.3.0",
     "expo-modules-core": "~1.5.12",
     "expo-notifications": "~0.20.1",
     "expo-screen-orientation": "~6.0.6",

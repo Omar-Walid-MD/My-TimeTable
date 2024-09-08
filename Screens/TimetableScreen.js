@@ -68,10 +68,11 @@ export default function TimetableScreen({navigation}) {
                     </View>
                     )
                 }
-                    <Pressable style={{...styles["bg-faint"],borderRadius:5,paddingHorizontal:5,paddingVertical:2,marginBottom:12}} onPress={()=>{
+                    <Pressable style={{...styles["bg-faint"],borderRadius:5,paddingHorizontal:10,paddingVertical:5,marginBottom:12,flexDirection:"row",alignItems:"center",gap:5}} onPress={()=>{
                         dispatch(setAddTableModal(true));
                     }}>
                         <Octicons name='plus' size={20} color="white" />
+                        <Text style={{color:"white"}}>{t("tables.add-table")}</Text>
                     </Pressable>
 
                 </ScrollView>
@@ -81,7 +82,7 @@ export default function TimetableScreen({navigation}) {
                 <ScrollView horizontal contentContainerStyle={{flexDirection:"column",flexGrow:1}}>
                     <View style={{flexDirection:"row"}}>
                     {
-                        Array.from({length:5}).map((x,index)=>
+                        Array.from({length:tables[tableIndex]?.content.length}).map((x,index)=>
                         <View style={{width:s,alignItems:"center",paddingBottom:10}} key={`day-tab-${index}`}>
                             <Text style={{...styles.text,fontSize:20,textTransform:"uppercase"}}>{t(`days.${index}`)}</Text>
                         </View>

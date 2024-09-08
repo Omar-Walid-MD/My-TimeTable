@@ -10,7 +10,7 @@ const themes = {
         "danger": "rgb(200, 0, 0)",
         "success": "rgb(35, 150, 35)",
         "current": "rgb(35, 150, 35)",
-        "period-home": "#E6FFE6",
+        "period-home": "#EDFCED",
         "period-none":"rgb(120, 120, 120)",
     },
     "blue": {
@@ -24,12 +24,12 @@ const themes = {
         "danger": "rgb(200, 0, 0)",
         "success": "rgb(35, 150, 35)",
         "current": "#2873FF",
-        "period-home": "#E1EBFF",
+        "period-home": "#F2F7FF",
         "period-none":"rgb(120, 120, 120)",
     },
     "red": {
         "bg": "#FFE5E9",
-        "dark": "#B33C49",
+        "dark": "#961422",
         "selected": "#FFE5E9",
         "text": "black",
         "faint": "#D26975",
@@ -38,12 +38,12 @@ const themes = {
         "danger": "rgb(200, 0, 0)",
         "success": "rgb(35, 150, 35)",
         "current": "#FE2839",
-        "period-home": "#FFE1E3",
+        "period-home": "#FFF2F3",
         "period-none":"rgb(120, 120, 120)",
     },
-    "yellow": {
+    "gold": {
         "bg": "#F6F1DD",
-        "dark": "#AA881D",
+        "dark": "#997800",
         "selected": "#F6F1DD",
         "text": "black",
         "faint": "#C2A647",
@@ -51,8 +51,8 @@ const themes = {
         "primary":"rgb(0, 140, 180)",
         "danger": "rgb(200, 0, 0)",
         "success": "rgb(35, 150, 35)",
-        "current": "#E1AF09",
-        "period-home": "#F7F3DA",
+        "current": "#c49700",
+        "period-home": "#FFFCEB",
         "period-none":"rgb(120, 120, 120)",
     }
 }

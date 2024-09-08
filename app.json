@@ -33,7 +33,8 @@
       }
     },
     "plugins":[
-      "./plugins/custom-android-styles.js"
+      "./plugins/custom-android-styles.js",
+      "expo-localization"
     ]
   }
 }

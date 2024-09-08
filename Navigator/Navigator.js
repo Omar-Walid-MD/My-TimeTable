@@ -32,7 +32,6 @@ export default function Navigator()
     useEffect(()=>{
         if(!loading && currentLang && !initialLangChange)
         {
-            console.log(currentLang);
             changeLanguage(currentLang);
             setInitialLangChange(true);
         }

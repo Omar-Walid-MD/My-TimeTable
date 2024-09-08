@@ -20,7 +20,8 @@ function getStyles(themeName)
 			writingDirection:"ltr",
 			width: "100%",
 			flex: 1,
-			backgroundColor: theme["bg"],
+			backgroundColor: "white"
+			// backgroundColor: theme["bg"],
 		},
 
 		navbar: {
@@ -114,7 +115,9 @@ function getStyles(themeName)
 		},
 
 
-
+		"bg-white": {
+			backgroundColor: "white"
+		},
 		"bg-main": {
 			backgroundColor: theme["bg"]
 		},
@@ -179,8 +182,10 @@ function getStyles(themeName)
 
 		"home-period-container": {
 			backgroundColor:theme["period-home"],
+			minHeight: 150,
 			padding:20,
 			alignItems:"center",
+			justifyContent:"center",
 			width:"100%",
 			borderRadius:10,
 			shadowColor:"black",

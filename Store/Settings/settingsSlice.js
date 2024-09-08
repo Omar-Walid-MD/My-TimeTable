@@ -44,7 +44,6 @@ export const getLang = createAsyncThunk(
   'settings/getLang',
   async () => {
     const res = await AsyncStorage.getItem("lang");
-    console.log("from storage",res);
     return res;
 });
 

@@ -40,7 +40,6 @@ function AddTableModal({tables}) {
     function handleAddNewTable()
     {
         dispatch(addNewTable(tableTitleEdit));
-        // dispatch(updateTables([...tables,{...JSON.parse(JSON.stringify(tableTemplate)),name:tableTitleEdit}]));
         popup("add-table");
     }
 
@@ -61,7 +60,7 @@ function AddTableModal({tables}) {
     return (
         <Modal visible={addTableModal} animationType='slide' transparent onRequestClose={() => dispatch(setAddTableModal(null))}>
             <View style={{width:"100%",flex:1,alignItems:"center",justifyContent:"center",backgroundColor:"rgba(0,0,0,0.5)"}}>
-                <View style={{...styles["bg-main"],width:"90%",padding:20,paddingTop:40,borderRadius:10,alignItems:"center"}}>
+                <View style={{...styles["bg-white"],width:"90%",padding:20,paddingTop:40,borderRadius:10,alignItems:"center"}}>
 
                     <View style={{marginBottom:30}}>
                     {
@@ -96,11 +95,11 @@ function AddTableModal({tables}) {
                             <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.add")}</Text>
                         </Pressable>
                         <View style={{...styles["flex-row"],gap:5,alignItems:"center",marginBottom:5}}>
-                            <View style={{...styles["border-faint"],width:50,borderWidth:1.25,marginTop:8}}></View>
+                            <View style={{...styles["bg-faint"],width:50,height:2,marginTop:8}}></View>
 
-                            <Text style={{...styles["color-faint"],...styles.text,fontSize:20}}>{t("tables.or")}</Text>
+                            <Text style={{...styles["color-faint"],fontSize:20}}>{t("tables.or")}</Text>
 
-                            <View style={{...styles["border-faint"],width:50,borderWidth:1.25,marginTop:8}}></View>
+                            <View style={{...styles["bg-faint"],width:50,height:2,marginTop:8}}></View>
                         </View>
                         <Pressable style={{...styles["button"],...styles["bg-success"]}} onPress={()=>importTable()}>
                             <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.import")}</Text>

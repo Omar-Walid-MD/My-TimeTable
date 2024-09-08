@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, View, Image, Pressable, ScrollView, Platform, PermissionsAndroid } from 'react-native';
-import { MaterialCommunityIcons } from 'react-native-vector-icons'
+import { MaterialIcons } from 'react-native-vector-icons'
 import themes from '../themes';
 import NavBar from '../Components/Navbar';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import * as Localization from "expo-localization";
 import Text from '../Components/Text';
 import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
 
 export default function HomeScreen({navigation}) {
 
@@ -93,10 +94,27 @@ export default function HomeScreen({navigation}) {
                 style={{...styles["home-period-container"],"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0}}>
                     <Text style={{...styles["color-faint"],fontSize:15}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
                     <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
-                    <View style={{flexDirection:"column",width:"100%"}}>
-                        {period.location && <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>}
-                        {period.instructor && <Text style={{fontSize:15,color:themes[currentTheme]["faint"],textTransform:"capitalize"}}>By: {period.instructor}</Text>}
-                        
+                    <View style={{flexDirection:"column",width:"100%",alignItems:"flex-start"}}>
+                    {
+                        period.location &&
+                        <View
+                        style={{flexDirection: i18n.language==="ar" ? "row" : "row-reverse",alignItems:"center",gap:5}}
+                        >
+                            <Text style={{...styles.text,...styles["color-faint-2"],fontSize:15,textTransform:"capitalize",textAlign:"center"}}>{period.location}</Text>
+                            <MaterialIcons name="location-on" size={25} style={{...styles["color-faint-2"]}} />
+                        </View>
+                        // <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>
+                    }
+                    {
+                        period.instructor &&
+                        <View
+                        style={{flexDirection: i18n.language==="ar" ? "row" : "row-reverse",alignItems:"center",gap:5}}
+                        >
+                            <Text style={{...styles.text,...styles["color-faint-2"],fontSize:15,textTransform:"capitalize",textAlign:"center"}}>{period.instructor}</Text>
+                            <MaterialIcons name="person" size={25} style={{...styles["color-faint-2"]}} />
+                        </View>
+                        // <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>
+                    }                        
                     </View>
                     <View style={{...styles["bg-faint"],position:"absolute",top:0,left:0,margin:5,borderRadius:5,height:25,aspectRatio:1,justifyContent:"center",alignItems:"center"}}>
                         <Text style={{...styles["color-period-home"]}}>{index+1}</Text>

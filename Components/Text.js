@@ -19,7 +19,6 @@ export default function Text(props) {
     if(typeof text === "number") text = `${text}`;
     else if(typeof text === "object") text = `${text[0]}`;
 
-
     const fontFamily = props.font==="main" || !props.font ? (text.charCodeAt(0)>=threshold ? "Cairo" : "Ubuntu") : "";
 
     const font = `${fontFamily}${props.weight ? "_" : ""}${props.weight || ""}`;

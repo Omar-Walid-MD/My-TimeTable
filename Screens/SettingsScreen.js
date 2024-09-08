@@ -6,12 +6,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { setLang, setMinutes, setTheme } from '../Store/Settings/settingsSlice';
 import { addPeriodNotification, cancelAllNotifications } from '../notifications';
-import { updateTables } from '../Store/Tables/tablesSlice';
 import PopupContainer from '../Components/PopupContainer';
 import { addPopup, clearPopups } from '../Store/Popups/popupsSlice';
 import Text from "../Components/Text"
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../i18n';
+import { setTable } from '../Store/Tables/tablesSlice';
 
 export default function SettingsScreen({navigation}) {
 
@@ -44,7 +44,7 @@ export default function SettingsScreen({navigation}) {
         dispatch(addPopup({text:t(`popup.${text}`)}));
     }
 
-    async function refreshNotifications(before)
+    async function refreshNotifications(before=currentMinutes)
     {
         
         await cancelAllNotifications()
@@ -54,10 +54,10 @@ export default function SettingsScreen({navigation}) {
                 let targetTable = tables[currentTable];
                 targetTable.content.forEach((day)=>{
                     day.forEach(async (period)=>{
-                        period.notifId = await addPeriodNotification(period,before,t("notif"));
+                        period.notifId = await addPeriodNotification(period,before,t);
                     });
                 });
-                dispatch(updateTables(prevTables => prevTables.map((t,i) => i===currentTable ? targetTable : t)));
+                dispatch(setTable({tableIndex:currentTable,table:targetTable}));
             }
             popup("minutes")
         })
@@ -108,8 +108,9 @@ export default function SettingsScreen({navigation}) {
                         <Pressable
                         style={{display:"flex",alignItems:"center",justifyContent:"center",paddingVertical:5,paddingHorizontal:10,borderRadius:5,borderColor:themes[currentTheme]["current"],borderWidth:2,backgroundColor: currentLang===lang.code ? themes[currentTheme]["current"] : "transparent"}}
                         key={`lang-option-${lang.code}`}
-                        onPress={()=>{
+                        onPress={async ()=>{
                             changeLanguage(lang.code);
+                            await refreshNotifications();
                             dispatch(setLang(lang.code))
                             .then(()=>{
                                 dispatch(clearPopups())

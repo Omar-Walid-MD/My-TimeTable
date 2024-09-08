@@ -28,12 +28,6 @@ export const getCurrentTable = createAsyncThunk(
     return res;
 });
 
-// export const updateTables = createAsyncThunk(
-//   'tables/updateTables',
-//   async (tables) => {
-//     await AsyncStorage.setItem("tables",JSON.stringify(tables));
-//     return tables;
-// });
 
 export const setCurrentTable = createAsyncThunk(
   'tables/setCurrentTable',
@@ -42,6 +36,17 @@ export const setCurrentTable = createAsyncThunk(
     return currentTable;
 });
 
+export const setTable = createAsyncThunk(
+  'tables/setTable',
+  async ({tableIndex,table},{getState}) => {
+
+    const tables = JSON.parse(JSON.stringify(getState().tables.tables));
+    tables[tableIndex] = table;
+
+    await AsyncStorage.setItem("tables",JSON.stringify(tables));
+
+    return tables;
+});
 
 
 export const addNewTable = createAsyncThunk(
@@ -184,7 +189,10 @@ export const tablesSlice = createSlice({
         state.currentTable = action.payload;
       })
 
-
+      //setTable
+      .addCase(setTable.fulfilled, (state, action) => {
+        state.tables = action.payload;
+      })
 
 
       //addNewTable

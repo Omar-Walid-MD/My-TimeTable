@@ -5,10 +5,11 @@ import { setPeriodInForm, setPeriodModalForm, setPeriodToView } from '../../Stor
 import { MaterialCommunityIcons, MaterialIcons, Octicons, Feather } from 'react-native-vector-icons'
 
 import { getTimeString, popup } from '../../helper';
-import { deletePeriod, updateTables } from '../../Store/Tables/tablesSlice';
+import { deletePeriod } from '../../Store/Tables/tablesSlice';
 import { cancelNotification } from '../../notifications';
 import Text from '../Text';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 export default function PeriodViewModal({tables, tableIndex}) {
 
@@ -32,20 +33,37 @@ export default function PeriodViewModal({tables, tableIndex}) {
     return (
         <Modal visible={periodToView!==null} animationType='slide' transparent onRequestClose={() => dispatch(setPeriodToView(null))}>
             <View style={{width:"100%",flex:1,alignItems:"center",justifyContent:"center",backgroundColor:"rgba(0,0,0,0.5)"}}>
-                <View style={{...styles["bg-main"],width:"90%",padding:15,paddingTop:40,borderRadius:10,alignItems:"center"}}>
+                <View style={{...styles["bg-white"],width:"90%",padding:15,paddingTop:40,borderRadius:10,alignItems:"center"}}>
 
                     {
                         periodToView &&
 
-                        <View style={{alignItems:"center",gap:10,marginBottom:20}}>
+                        <View style={{alignItems:"center",marginBottom:20}}>
                             <Text style={{...styles.text,...styles["color-faint"],fontSize:15}}>{getTimeString(periodToView.from)} - {getTimeString(periodToView.to)}</Text>
                             <Text style={{...styles.text,fontSize:40,textAlign:"center",marginBottom:20}}>{periodToView.title}</Text>
-                            {periodToView.location && <Text style={{...styles.text,...styles["color-faint-2"],fontSize:20,textTransform:"capitalize",textAlign:"center"}}>{t("home.at")}: {periodToView.location}</Text>}
-                            {periodToView.instructor && <Text style={{...styles.text,...styles["color-faint"],fontSize:20,...styles["color-faint"],textTransform:"capitalize",textAlign:"center"}}>{t("home.by")}: {periodToView.instructor}</Text>}
+                            
+                            {
+                                periodToView.location &&
+                                <View
+                                style={{flexDirection: i18n.language==="ar" ? "row" : "row-reverse",alignItems:"center",}}
+                                >
+                                    <Text style={{...styles.text,...styles["color-faint-2"],fontSize:20,textTransform:"capitalize",textAlign:"center"}}>{periodToView.location}</Text>
+                                    <MaterialIcons name="location-on" size={40} style={{...styles["color-faint-2"]}} />
+                                </View>
+                            }
+                            {
+                                periodToView.instructor &&
+                                <View
+                                style={{flexDirection: i18n.language==="ar" ? "row" : "row-reverse",alignItems:"center",}}
+                                >
+                                    <Text style={{...styles.text,...styles["color-faint"],fontSize:20,...styles["color-faint"],textTransform:"capitalize",textAlign:"center"}}>{periodToView.instructor}</Text>
+                                    <MaterialIcons name="person" size={40} style={{...styles["color-faint"]}} />
+                                </View>
+                            }
                         </View>
                     }
 
-                    <View style={{gap:10}}>
+                    <View style={{flexDirection:"row",gap:10}}>
                         <Pressable style={{...styles["button"],...styles["bg-primary"]}} onPress={()=>{
                             dispatch(setPeriodModalForm("edit"));
                             dispatch(setPeriodInForm(periodToView));
@@ -62,7 +80,6 @@ export default function PeriodViewModal({tables, tableIndex}) {
                     </View>
 
                     <View
-                    //style[position:"absolute" top:0 width:"100%"]
                     style={{position:"absolute",top:0,width:"100%",alignItems:"flex-end",paddingTop:15}}
                     >
                         <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>{

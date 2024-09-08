@@ -35,9 +35,9 @@ export const changeLanguage = (language) => {
   I18nManager.forceRTL(isRTL);
   I18nManager.allowRTL(isRTL);
   
-//   if (I18nManager.isRTL !== isRTL) {
-//     Updates.reloadAsync();
-//   }
+  if (I18nManager.isRTL !== isRTL) {
+    Updates.reloadAsync();
+  }
 };
 
 export default i18n;

@@ -19,6 +19,7 @@
             "untitled": "بلا عنوان",
             "period": "حصة",
             "add": "إضافة",
+            "add-table": "إضافة جدول",
             "edit": "تعديل",
             "delete": "إزالة",
             "reset": "محو",
@@ -49,9 +50,9 @@
             "green": "أخضر",
             "blue": "أزرق",
             "red": "أحمر",
-            "yellow": "أصفر",
+            "gold": "ذهبي",
 
-            "notify-before": "إشعار قبل",
+            "notify-before": "الدقائق قبل الحصة لإرسال الإشعار",
 
             "lang": "اللغة"
         },
@@ -101,6 +102,7 @@
             "untitled": "Untitled",
             "period": "Period",
             "add": "Add",
+            "add-table": "Add Table",
             "edit": "Edit",
             "delete": "Delete",
             "reset": "Reset",
@@ -130,9 +132,9 @@
             "green": "green",
             "blue": "blue",
             "red": "red",
-            "yellow": "yellow",
+            "gold": "gold",
 
-            "notify-before": "Notify Before",
+            "notify-before": "Minutes Before Period to Notify",
 
             "lang": "Language"
         },
