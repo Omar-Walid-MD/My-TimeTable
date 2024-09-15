@@ -5,12 +5,14 @@ import { useDispatch, useSelector } from "react-redux";
 import Text from "../Text";
 import themes from '../../themes';
 import DateTimePicker from "react-native-modal-datetime-picker";
-import { getTimeString, popup } from "../../helper";
+import { getTimeString } from "../../helpers";
 import { addPeriod, editPeriod } from "../../Store/Tables/tablesSlice";
 import { setPeriodModalForm } from "../../Store/Modals/modalsSlice";
 import { addPeriodNotification, editPeriodNotification } from "../../notifications";
 import Input from "../Input";
 import { useTranslation } from "react-i18next";
+import { addPopup } from "../../Store/Popups/popupsSlice";
+import Button from "../Button";
 
 export default function PeriodFormModal({tables,tableIndex}) {
 
@@ -37,6 +39,11 @@ export default function PeriodFormModal({tables,tableIndex}) {
     });
 
     const [suggestionKey,setSuggestionKey] = useState(null);
+
+    function popup(text)
+    {
+        dispatch(addPopup({text:t(`popup.${text}`)}));
+    }
 
     function getSuggestions(periodInFormEdit,existingOptions,suggestionKey)
     {
@@ -166,9 +173,9 @@ export default function PeriodFormModal({tables,tableIndex}) {
                         <View
                         style={{position:"absolute",top:0,width:"100%",alignItems:"flex-end",paddingTop:0}}
                         >
-                            <Pressable style={{padding:5,margin:20,borderRadius:5,backgroundColor:"black"}} onPress={()=>{resetPeriodForm();}}>
+                            <Button style={{paddingHorizontal:5,margin:20,gap:0,backgroundColor:"black"}} onPress={()=>{resetPeriodForm();}}>
                                 <Feather name="x" size={20} color="white" />
-                            </Pressable>
+                            </Button>
                         </View>
                     </View>
                     {
@@ -213,22 +220,26 @@ export default function PeriodFormModal({tables,tableIndex}) {
                                 //style[alignItems:"flex-end" gap:10 width:"45%"]
                                 style={{alignItems:"flex-end",gap:10,width:"45%"}}>
                                     <Text style={{...styles.text,fontSize:20,alignSelf:"flex-start"}}>{t("tables.to")}:</Text>
-                                    <Input
-                                    placeholder='00:00'
-                                    value={getTimeString(periodInFormEdit.to)}
-                                    onPressIn={()=>setToTimePicker(true)}
-                                    />
-                                    {
-                                        getSuggestions(periodInFormEdit,existingOptions,"title").length>0 &&
-                                        <View
-                                        //style[height:"100%" position:"absolute" padding:5 alignItems:"center" justifyContent:"center"]
-                                        style={{height:"100%",position:"absolute",padding:5,alignItems:"center",justifyContent:"center"}}
-                                        >
-                                            <Pressable style={{alignItems:"center",justifyContent:"center"}} onPress={()=>setSuggestionKey("time")}>
-                                                <MaterialIcons name="search" size={25} style={styles["color-primary"]} />
-                                            </Pressable>
-                                        </View>
-                                    }
+
+                                    <View style={{width:"100%",alignItems:"flex-end"}}>
+
+                                        <Input
+                                        placeholder='00:00'
+                                        value={getTimeString(periodInFormEdit.to)}
+                                        onPressIn={()=>setToTimePicker(true)}
+                                        />
+                                        {
+                                            getSuggestions(periodInFormEdit,existingOptions,"title").length>0 &&
+                                            <View
+                                            //style[height:"100%" position:"absolute" padding:5 alignItems:"center" justifyContent:"center"]
+                                            style={{height:"100%",position:"absolute",padding:5,alignItems:"center",justifyContent:"center"}}
+                                            >
+                                                <Pressable style={{alignItems:"center",justifyContent:"center"}} onPress={()=>setSuggestionKey("time")}>
+                                                    <MaterialIcons name="search" size={25} style={styles["color-primary"]} />
+                                                </Pressable>
+                                            </View>
+                                        }
+                                    </View>
                                 </View>
                             </View>
 
@@ -277,10 +288,10 @@ export default function PeriodFormModal({tables,tableIndex}) {
                                 </View>
                             </View>
 
-                            <Pressable style={{...styles["bg-current"],padding:5,paddingHorizontal:15,borderRadius:5,pointerEvents:"auto"}}
+                            <Button style={{...styles["bg-current"],paddingHorizontal:20,gap:0,pointerEvents:"auto"}}
                             onPress={()=>{periodModalForm==="add" ? handleAddPeriod() : handleEditPeriod()}}>
-                                <Text style={{...styles.text,color:"white",fontSize:25}}>{t(`tables.${periodModalForm}`)}</Text>
-                            </Pressable>
+                                <Text style={{...styles.text,color:"white",fontSize:20}}>{t(`tables.${periodModalForm}`)}</Text>
+                            </Button>
                             
                         </View>
                     }
@@ -292,9 +303,9 @@ export default function PeriodFormModal({tables,tableIndex}) {
                     <View style={{width:"100%",backgroundColor:"white",padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
                         <View style={{flexDirection:"row",justifyContent:"space-between",padding:10}}>
                             <Text style={{fontSize:20}}>{t("tables.suggestions")}</Text>
-                            <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>setSuggestionKey(null)}>
+                            <Button style={{paddingHorizontal:8,gap:0,backgroundColor:"black"}} onPress={()=>setSuggestionKey(null)}>
                                 <Feather name="x" size={20} color="white" />
-                            </Pressable>
+                            </Button>
                         </View>
                         <View style={{width:"100%",borderColor:"black",borderWidth:1,marginTop:5}}></View>
                         <ScrollView style={{height:300}} contentContainerStyle={{padding:5}}>

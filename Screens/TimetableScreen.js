@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, View, Image, Pressable, ScrollView, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, View, Image, ScrollView, Pressable, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons, Octicons, Feather } from 'react-native-vector-icons'
 import themes from '../themes';
 import { useEffect, useState } from 'react';
@@ -8,13 +8,14 @@ import { setAddTableModal, setPeriodInForm, setPeriodModalForm, setTableSettings
 import PopupContainer from '../Components/PopupContainer';
 import Text from '../Components/Text';
 import PeriodFormModal from '../Components/Modals/PeriodFormModal';
-import { getTimeString, popup } from '../helper';
+import { getTimeString } from '../helpers';
 import { setPeriodToView } from '../Store/Modals/modalsSlice';
 import PeriodViewModal from '../Components/Modals/PeriodViewModal';
 import TableSettingsModal from '../Components/Modals/TableSettingsModal';
 import AddTableModal from '../Components/Modals/AddTableModal';
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
+import Button from '../Components/Button';
 
 
 export default function TimetableScreen({navigation}) {
@@ -31,7 +32,7 @@ export default function TimetableScreen({navigation}) {
     const [tableIndex,setTableIndex] = useState(currentTable || 0);
 
     useEffect(()=>{
-        setTableIndex(currentTable);
+        if(currentTable!==null) setTableIndex(currentTable);
     },[currentTable]);
 
     useEffect(()=>{
@@ -40,18 +41,16 @@ export default function TimetableScreen({navigation}) {
 
     return (
         <View style={styles["page-container"]}>
-            <View style={{flexDirection:"row",width:"100%",paddingHorizontal:10,paddingBottom:20}}>
+            <View style={{flexDirection:"row",width:"100%",paddingHorizontal:0,paddingBottom:20}}>
 
-                <ScrollView style={{width:"100%",padding:20,paddingBottom:4}} contentContainerStyle={{flexDirection:"row",
-                    
-                    flexGrow:1,alignItems:"center",gap:20}} horizontal>
+                <ScrollView style={{width:"100%",paddingBottom:4,paddingTop:20}} contentContainerStyle={{flexDirection:"row",flexGrow:1,alignItems:"center",gap:20,paddingHorizontal:20}} horizontal>
                 {
                     tables.map((table,index)=>
                     <View style={{flexDirection:"row",alignItems:"center",gap:20,...(tableIndex===index ? styles["table-tab-active"] : styles["table-tab"])}} key={`table-${index}`}>
                         <Pressable onPress={()=>setTableIndex(index)}>
                         {
                             currentTable === index ?
-                            <Text style={{...styles["text"],...styles["bg-current"],fontSize:20,color:"white",paddingHorizontal:4,padding:2,borderRadius:5}}>{table.name}</Text>
+                            <Text style={{...styles["text"],...styles["bg-current"],fontSize:20,color:"white",paddingHorizontal:12,padding:2,borderRadius:5}}>{table.name}</Text>
                             :
                             <Text style={{...styles["text"],fontSize:20,...(tableIndex===index ? {color:"black"} : styles["color-faint"])}}>{table.name}</Text>
                         }
@@ -68,12 +67,12 @@ export default function TimetableScreen({navigation}) {
                     </View>
                     )
                 }
-                    <Pressable style={{...styles["bg-faint"],borderRadius:5,paddingHorizontal:10,paddingVertical:5,marginBottom:12,flexDirection:"row",alignItems:"center",gap:5}} onPress={()=>{
+                    <Button style={{...styles["bg-faint"],gap:5}} containerStyle={{marginBottom:12}} onPress={()=>{
                         dispatch(setAddTableModal(true));
                     }}>
                         <Octicons name='plus' size={20} color="white" />
                         <Text style={{color:"white"}}>{t("tables.add-table")}</Text>
-                    </Pressable>
+                    </Button>
 
                 </ScrollView>
             </View>
@@ -108,9 +107,9 @@ export default function TimetableScreen({navigation}) {
                                         key={`table-period-${dayIndex}-${periodIndex}`}>
                                             <View style={{width:"100%",height:"100%",alignItems:"center",justifyContent:"center",borderRadius:5,shadowColor:"black",elevation:5,
                                                 ...styles[`bg-period-${(dayIndex*2+periodIndex)%4+1}`]}}>
-                                                <Text weight='b' style={{textAlign:"center",fontSize:15,margin:5,lineHeight:20}} numberOfLines={3}>{period.title}</Text>
+                                                <Text weight='b' style={{textAlign:"center",fontSize:15,margin:5,lineHeight:20,textTransform:"capitalize"}} numberOfLines={3}>{period.title}</Text>
                                                 <Text style={{position:"absolute",top:0,...styles.positionLeft,padding:5,fontSize:10}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
-                                                <Text style={{position:"absolute",bottom:0,...styles.positionLeft,padding:5,fontSize:10}}>{period.location}</Text>
+                                                <Text style={{position:"absolute",bottom:0,...styles.positionLeft,padding:5,fontSize:10,textTransform:"capitalize"}}>{period.location}</Text>
                                             </View>
                                         </Pressable>
                                         )

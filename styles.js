@@ -59,13 +59,21 @@ function getStyles(themeName)
 		},
 
 		button: {
-			padding:5,
+			paddingVertical:5,paddingHorizontal:10,
 			borderRadius:5,
-			// borderWidth:2,
 			justifyContent:"center",
 			alignItems:"center",
 			flexDirection:"row",
-			gap:5
+			gap:5,
+			overflow:"hidden"
+		},
+
+		"button-overlay":
+		{
+			position:"absolute",
+			width:"250%", height:"250%",
+			backgroundColor:"black",
+			top:"-15%", left:"-15%"
 		},
 
 		"border-primary": {
@@ -159,7 +167,7 @@ function getStyles(themeName)
 		},
 
 		"bg-period-4" : {
-			backgroundColor: "rgb(200,255,200)"
+			backgroundColor: "rgb(255,230,255)"
 		},
 
 
@@ -186,7 +194,7 @@ function getStyles(themeName)
 			padding:20,
 			alignItems:"center",
 			justifyContent:"center",
-			width:"100%",
+			width:"97.5%",
 			borderRadius:10,
 			shadowColor:"black",
 			elevation:5,

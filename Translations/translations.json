@@ -1,13 +1,13 @@
 {
     "ar": {
         "days": {
-            "0": "سبت",
-            "1": "أحد",
-            "2": "إثنين",
-            "3": "ثلاثاء",
-            "4": "أربعاء",
-            "5": "خميس",
-            "6": "جمعة"
+            "0": "السبت",
+            "1": "الأحد",
+            "2": "الإثنين",
+            "3": "الثلاثاء",
+            "4": "الأربعاء",
+            "5": "الخميس",
+            "6": "الجمعة"
         },
         "home": {
             "today": "اليوم",
@@ -70,6 +70,7 @@
             "delete-table": "تمت إزالة الجدول.",
             "set-table": "تم تغيير الجدول الحالي.",
             "import-table": "تم إستيراد الجدول.",
+            "invalid-import-table": "الجدول غير صالح للإستيراد.",
             "export-table": "تم تصدير الجدول."
         },
         "notif": {
@@ -152,6 +153,7 @@
             "delete-table": "Deleted Table.",
             "set-table": "Changed Current Table.",
             "import-table": "Imported Table.",
+            "invalid-import-table": "Imported Table is Invalid.",
             "export-table": "Exported Table."
         },
         "notif": {

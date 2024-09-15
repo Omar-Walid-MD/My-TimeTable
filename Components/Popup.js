@@ -4,7 +4,7 @@ import { Image, View, Animated, Easing } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { removePopup } from '../Store/Popups/popupsSlice';
 
-import { FontAwesome5 } from 'react-native-vector-icons'
+import { FontAwesome5, Octicons } from 'react-native-vector-icons'
 import Text from './Text';
 
 function Popup({popup}) {
@@ -42,9 +42,16 @@ function Popup({popup}) {
     },[]);
 
     return (
-        <Animated.View style={{...styles["flex-row"],alignItems:"center",gap:5,position:"absolute",transform:[{translateY:y}],...styles["bg-current"],padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
+        <Animated.View
+        style={{...styles["flex-row"],alignItems:"center",gap:5,position:"absolute",transform:[{translateY:y}],
+        ...styles[popup.state==="success" ? "bg-current" : "bg-danger"],padding:5,borderRadius:5,shadowColor:"black",elevation:5}}>
             <Text style={{...styles["text"],fontSize:15,color:"white"}}>{popup.text}</Text>
-            <FontAwesome5 name="check-circle" color="white" size={20} />
+            {
+                popup.state==="success" ?
+                <FontAwesome5 name="check-circle" color="white" size={20} />
+                :
+                <Octicons name="x-circle" color="white" size={20} />
+            }
         </Animated.View>
     );
 }

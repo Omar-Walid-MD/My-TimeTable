@@ -31,8 +31,3 @@ export function getTimeString(hourString)
 
     return `${h }:${m<10 ? "0"+m : m} ${t}`;
 }
-
-export function popup(text)
-{
-    // dispatch(addPopup({text:i18n.t(`popup.${text}`)}));
-}

@@ -6,11 +6,12 @@ import Text from "../Text";
 import themes from '../../themes';
 import { deleteTable, editTableTitle, resetTable, setCurrentTable, setTable } from "../../Store/Tables/tablesSlice";
 import { setTableSettingsModal } from "../../Store/Modals/modalsSlice";
-import { popup } from "../../helper";
 import { addPeriodNotification, cancelAllNotifications } from "../../notifications";
 
 import * as FileSystem from 'expo-file-system';
 import { useTranslation } from "react-i18next";
+import { addPopup } from "../../Store/Popups/popupsSlice";
+import Button from "../Button";
 
 
 function TableSettingsModal({tables,tableIndex}) {
@@ -27,6 +28,11 @@ function TableSettingsModal({tables,tableIndex}) {
     const [isEditingTableTitle,setIsEditingTableTitle] = useState(false);
     const [tableTitleEdit,setTableTitleEdit] = useState(false);
     const [confirming,setConfirming] = useState(null);
+
+    function popup(text)
+    {
+        dispatch(addPopup({text:t(`popup.${text}`)}));
+    }
 
     function handleResetTable()
     {
@@ -45,10 +51,7 @@ function TableSettingsModal({tables,tableIndex}) {
         {
             dispatch(setTableSettingsModal(false));
 
-            let newIndex = tableIndex>0 ? tableIndex-1 : tableIndex+1;
-            if(tableIndex===currentTable) dispatch(setCurrentTable(newIndex));
-
-            dispatch(deleteTable(tableIndex));
+            let newIndex = tableIndex===currentTable ? null : tableIndex<currentTable ? Math.max(tableIndex-1,0) : currentTable;
             
             if(currentTable === tableIndex)
             {
@@ -57,6 +60,10 @@ function TableSettingsModal({tables,tableIndex}) {
                     addTableNotifications(newIndex);
                 })
             }
+
+            dispatch(setCurrentTable(newIndex));
+            dispatch(deleteTable(tableIndex));
+
             popup("delete-table");
         }
     }
@@ -71,14 +78,14 @@ function TableSettingsModal({tables,tableIndex}) {
         })
     }
 
-    // async function disableTable()
-    // {
-    //     await cancelAllNotifications()
-    //     .then(()=>{
-    //         dispatch(setCurrentTable(null));
-    //         popup("set-table");
-    //     })
-    // }
+    async function disableTable()
+    {
+        await cancelAllNotifications()
+        .then(()=>{
+            dispatch(setCurrentTable(null));
+            popup("set-table");
+        })
+    }
 
     
     function addTableNotifications(tableIndex)
@@ -87,7 +94,6 @@ function TableSettingsModal({tables,tableIndex}) {
         Object.keys(targetTable.content).forEach((day)=>{
                 
             targetTable.content[day].forEach(async (period)=>{
-                // console.log(period.title,period.day)
                 period.notifId = await addPeriodNotification(period,currentMinutes,t);
             });
         });
@@ -137,8 +143,8 @@ function TableSettingsModal({tables,tableIndex}) {
                                 value={tableTitleEdit}
                                 onChangeText={(text)=>setTableTitleEdit(text)}
                                 />
-                                <Pressable
-                                style={{width:"100%",backgroundColor:"black",borderRadius:5,padding:5}}
+                                <Button
+                                style={{backgroundColor:"black",paddingHorizontal:20}}
                                 onPress={()=>{
                                     if(tableTitleEdit)
                                     {
@@ -150,12 +156,12 @@ function TableSettingsModal({tables,tableIndex}) {
                                         setIsEditingTableTitle(false);
                                     }
                                     }}>
-                                    <Text fontFamily={""} style={{...styles.text,color:"white",fontSize:20,textAlign:"center"}}>{t("tables.confirm")}</Text>
-                                </Pressable>
+                                    <Text style={{...styles.text,color:"white",fontSize:20,textAlign:"center"}}>{t("tables.confirm")}</Text>
+                                </Button>
                             </View>
                             :
                             <>
-                                <Text fontFamily={""} style={{...styles.text,fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tables[tableIndex].name}</Text>
+                                <Text style={{...styles.text,fontSize:30,borderColor:"black",borderBottomWidth:2,paddingHorizontal:20}}>{tables[tableIndex].name}</Text>
 
                                 <Pressable style={{position:"absolute",bottom:-12,right:-10,backgroundColor:"black",borderRadius:20,padding:5}} onPress={()=>{setIsEditingTableTitle(true);setTableTitleEdit(tables[tableIndex].name);}}>
                                     <MaterialCommunityIcons name='pencil' size={15} color="white" />
@@ -168,45 +174,47 @@ function TableSettingsModal({tables,tableIndex}) {
                     <View style={{flexDirection:"column",gap:20,alignItems:"stretch"}}>
                         {
                             tables.length > 1 &&
-                            <Pressable onPress={()=>setConfirming("delete")} style={{...styles["button"],...styles["bg-danger"]}}>
+                            <Button onPress={()=>setConfirming("delete")} style={{...styles["bg-danger"]}}>
                                 <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
-                                <Text fontFamily={""} style={{color:"white",fontSize:20}}>{t("tables.delete")}</Text>
-                            </Pressable>
+                                <Text style={{color:"white",fontSize:20}}>{t("tables.delete")}</Text>
+                            </Button>
                         }
                         {
-                            tableIndex !== currentTable &&
-                            <Pressable onPress={()=>enableTable(tableIndex)} style={{...styles["button"],...styles["bg-success"]}}>
+                            tableIndex !== currentTable ?
+                            <Button onPress={()=>enableTable(tableIndex)} style={{...styles["bg-success"]}}>
                                 <MaterialCommunityIcons name="check-circle-outline" color="white" size={30} /> 
-                                <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white",}}>{t("tables.enable")}</Text>
-                            </Pressable>
-                            // : tables.length > 1 &&
-                            // <Pressable onPress={()=>disableTable()} style={{...styles["button"],...styles["bg-danger"]}}>
-                            //     <Feather name="x-circle" color="white" size={30} /> 
-                            //     <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white",}}>{t("tables.disable")}</Text>
-                            // </Pressable>
+                                <Text style={{...styles.text,fontSize:20,color:"white",}}>{t("tables.enable")}</Text>
+                            </Button>
+                            :
+                            <Button onPress={()=>disableTable()} style={{backgroundColor:"gray"}}>
+                                <Feather name="x-circle" color="white" size={30} /> 
+                                <Text style={{...styles.text,fontSize:20,color:"white",}}>{t("tables.disable")}</Text>
+                            </Button>
+                            
                         }
-                        <Pressable style={{...styles["button"],...styles["bg-primary"]}} onPress={()=>setConfirming("reset")}>
-                            <MaterialCommunityIcons name="refresh" color="white" size={30} /> 
-                            <Text fontFamily={""} style={{color:"white",fontSize:20}}>{t("tables.reset")}</Text>
-                        </Pressable>
 
-                        <Pressable style={{...styles["button"],...styles["bg-success"]}} onPress={()=>exportTable()}>
+                        <Button style={{...styles["bg-primary"]}} onPress={()=>setConfirming("reset")}>
+                            <MaterialCommunityIcons name="refresh" color="white" size={30} /> 
+                            <Text style={{color:"white",fontSize:20}}>{t("tables.reset")}</Text>
+                        </Button>
+
+                        <Button style={{...styles["bg-success"]}} onPress={()=>exportTable()}>
                             <MaterialCommunityIcons name="export" color="white" size={30} /> 
-                            <Text fontFamily={""} style={{color:"white",fontSize:20}}>{t("tables.export")}</Text>
-                        </Pressable>
+                            <Text style={{color:"white",fontSize:20}}>{t("tables.export")}</Text>
+                        </Button>
                     </View>
 
                     <View
                     //style[position:"absolute" top:0 width:"100%"]
                     style={{position:"absolute",top:0,width:"100%",alignItems:"flex-end",paddingTop:15}}
                     >
-                        <Pressable style={{padding:5,borderRadius:5,backgroundColor:"black"}} onPress={()=>{
+                        <Button style={{paddingHorizontal:5,gap:0,backgroundColor:"black"}} onPress={()=>{
                             dispatch(setTableSettingsModal(false));
                             setTableTitleEdit("");
                             setIsEditingTableTitle(false);
                             }}>
                             <Feather name="x" size={20} color="white" />
-                        </Pressable>
+                        </Button>
                     </View>
 
                 </View>
@@ -215,26 +223,27 @@ function TableSettingsModal({tables,tableIndex}) {
                 confirming &&
                 <View style={{position:"absolute",top:0,...styles.positionLeft,width:"100%",height:"100%",alignItems:"center",justifyContent:"center",padding:50,backgroundColor:"rgba(0,0,0,0.7)"}}>
                     <View style={{width:"100%",alignItems:"center",backgroundColor:"white",padding:20,borderRadius:5,shadowColor:"black",elevation:5}}>
-                        <Text fontFamily={""} style={{fontSize:25,textTransform:"capitalize"}}>{t(`tables.confirm-${confirming}-title`)}</Text>
-                        <Text fontFamily={""} style={{fontSize:20,marginVertical:20}}>{t(`tables.confirm-${confirming}-message`)}</Text>
+                        <Text style={{fontSize:25,textTransform:"capitalize"}}>{t(`tables.confirm-${confirming}-title`)}</Text>
+                        <Text style={{fontSize:20,marginVertical:20}}>{t(`tables.confirm-${confirming}-message`)}</Text>
 
                         <View style={{...styles["flex-row"],justifyContent:"space-between",width:"100%"}}>
-                            <Pressable style={{...styles["button"],backgroundColor:"gray"}} onPress={()=>setConfirming(null)}>
-                                <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.cancel")}</Text>
-                            </Pressable>
+                            
+                            <Button style={{backgroundColor:"gray"}} onPress={()=>setConfirming(null)}>
+                                <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.cancel")}</Text>
+                            </Button>
                             
                             {
                                 confirming==="reset" ?
-                                <Pressable style={{...styles["button"],...styles["bg-danger"]}} onPress={()=>{handleResetTable();setConfirming(null);}}>
+                                <Button style={{...styles["bg-danger"]}} onPress={()=>{handleResetTable();setConfirming(null);}}>
                                     <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
-                                    <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.reset")}</Text>
-                                </Pressable>
+                                    <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.reset")}</Text>
+                                </Button>
                                 :
                                 confirming==="delete" &&
-                                <Pressable style={{...styles["button"],...styles["bg-danger"]}} onPress={()=>{handleDeleteTable();setConfirming(null);}}>
+                                <Button style={{...styles["bg-danger"]}} onPress={()=>{handleDeleteTable();setConfirming(null);}}>
                                     <MaterialCommunityIcons name="trash-can-outline" color="white" size={30} />
-                                    <Text fontFamily={""} style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.delete")}</Text>
-                                </Pressable>
+                                    <Text style={{...styles.text,fontSize:20,color:"white"}}>{t("tables.delete")}</Text>
+                                </Button>
                             }
                         </View>
                     </View>

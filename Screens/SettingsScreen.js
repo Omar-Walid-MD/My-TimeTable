@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, View, Image, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, View, Image, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from 'react-native-vector-icons'
 import themes from '../themes';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,15 +10,15 @@ import PopupContainer from '../Components/PopupContainer';
 import { addPopup, clearPopups } from '../Store/Popups/popupsSlice';
 import Text from "../Components/Text"
 import { useTranslation } from 'react-i18next';
-import { changeLanguage } from '../i18n';
+import i18n, { changeLanguage } from '../i18n';
 import { setTable } from '../Store/Tables/tablesSlice';
+import Button from '../Components/Button';
 
 export default function SettingsScreen({navigation}) {
 
     const styles = useSelector(store => store.settings.styles);
     const currentTheme = useSelector(store => store.settings.theme);
     const currentMinutes = useSelector(store => store.settings.minutes);
-    const currentLang = useSelector(store => store.settings.lang);
 
     const tables = useSelector(store => store.tables.tables);
     const currentTable = useSelector(store => store.tables.currentTable);
@@ -46,22 +46,23 @@ export default function SettingsScreen({navigation}) {
 
     async function refreshNotifications(before=currentMinutes)
     {
-        
-        await cancelAllNotifications()
-        .then(()=>{
-            if(tables.length)
-            {
-                let targetTable = tables[currentTable];
-                targetTable.content.forEach((day)=>{
-                    day.forEach(async (period)=>{
-                        period.notifId = await addPeriodNotification(period,before,t);
+        if(currentTable!==null)
+        {
+            await cancelAllNotifications()
+            .then(()=>{
+                if(tables.length)
+                {
+                    let targetTable = tables[currentTable];
+                    targetTable.content.forEach((day)=>{
+                        day.forEach(async (period)=>{
+                            period.notifId = await addPeriodNotification(period,before,t);
+                        });
                     });
-                });
-                dispatch(setTable({tableIndex:currentTable,table:targetTable}));
-            }
-            popup("minutes")
-        })
-
+                    dispatch(setTable({tableIndex:currentTable,table:targetTable}));
+                }
+                popup("minutes")
+            })
+        }
     }
 
     return (
@@ -73,13 +74,13 @@ export default function SettingsScreen({navigation}) {
                     <View style={{flexDirection:"row",gap:10,paddingHorizontal:50,flexWrap:"wrap",justifyContent:"center"}}>
                     {
                         Object.keys(themes).map((theme)=>
-                        <Pressable
+                        <Button
                         key={`theme-button-${theme}`}
-                        style={currentTheme===theme ? {...styles["button"],width:100,...styles["bg-current"]} : {...styles["button"],width:100,borderColor:themes[theme]["current"],borderWidth:2}}
+                        style={currentTheme===theme ? {width:100,...styles["bg-current"]} : {width:100,borderColor:themes[theme]["current"],borderWidth:2}}
                         onPress={()=>{dispatch(setTheme(theme)).then(()=>popup("theme"));}}
                         >
                             <Text fontFamily={""} fontWeight={"bold"} style={{fontSize:20,textTransform:"capitalize",color:themes[theme][currentTheme===theme ? "bg" : "current"]}}>{t(`settings.${theme}`)}</Text>
-                        </Pressable>
+                        </Button>
                         )
                     }
                     </View>
@@ -89,13 +90,13 @@ export default function SettingsScreen({navigation}) {
                     <View style={{flexWrap:"wrap",flexDirection:"row",gap:10}}>
                     {
                         minutesOptions.map((minutes)=>
-                        <Pressable
-                        style={{display:"flex",alignItems:"center",justifyContent:"center",width:40,height:40,borderRadius:5,borderColor:themes[currentTheme]["current"],borderWidth:2,backgroundColor: currentMinutes===minutes ? themes[currentTheme]["current"] : "transparent"}}
+                        <Button
+                        style={{width:45,height:45,borderColor:themes[currentTheme]["current"],borderWidth:2,backgroundColor: currentMinutes===minutes ? themes[currentTheme]["current"] : "transparent"}}
                         key={`minute-option-${minutes}`}
                         onPress={()=>{if(currentMinutes!==minutes){dispatch(setMinutes(minutes));refreshNotifications(minutes);}}}
                         >
                             <Text fontFamily={""} style={{color:currentMinutes===minutes ? "white" : themes[currentTheme]["current"]}}>{minutes}</Text>
-                        </Pressable>
+                        </Button>
                         )
                     }
                     </View>
@@ -105,8 +106,8 @@ export default function SettingsScreen({navigation}) {
                     <View style={{flexWrap:"",flexDirection:"row",gap:10}}>
                     {
                         langOptions.map((lang)=>
-                        <Pressable
-                        style={{display:"flex",alignItems:"center",justifyContent:"center",paddingVertical:5,paddingHorizontal:10,borderRadius:5,borderColor:themes[currentTheme]["current"],borderWidth:2,backgroundColor: currentLang===lang.code ? themes[currentTheme]["current"] : "transparent"}}
+                        <Button
+                        style={{borderColor:themes[currentTheme]["current"],borderWidth:2,backgroundColor: i18n.language===lang.code ? themes[currentTheme]["current"] : "transparent"}}
                         key={`lang-option-${lang.code}`}
                         onPress={async ()=>{
                             changeLanguage(lang.code);
@@ -118,8 +119,8 @@ export default function SettingsScreen({navigation}) {
                             })
                         }}
                         >
-                            <Text style={{fontSize:20,color:currentLang===lang.code ? "white" : themes[currentTheme]["current"],textTransform:"capitalize"}}>{lang.name}</Text>
-                        </Pressable>
+                            <Text style={{fontSize:20,color:i18n.language===lang.code ? "white" : themes[currentTheme]["current"],textTransform:"capitalize"}}>{lang.name}</Text>
+                        </Button>
                         )
                     }
                     </View>

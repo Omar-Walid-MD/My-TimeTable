@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, View, Image, Pressable, ScrollView, Platform, PermissionsAndroid } from 'react-native';
-import { MaterialIcons } from 'react-native-vector-icons'
+import { MaterialIcons, MaterialCommunityIcons, Octicons } from 'react-native-vector-icons'
 import themes from '../themes';
 import NavBar from '../Components/Navbar';
 import { useSelector } from 'react-redux';
@@ -16,12 +16,11 @@ export default function HomeScreen({navigation}) {
     const { t } = useTranslation();
     
     const styles = useSelector(store => store.settings.styles);
-    const currentTheme = useSelector(store => store.settings.theme);
 
     const tables = useSelector(store => store.tables.tables);
     const currentTable = useSelector(store => store.tables.currentTable);
 
-    let day = new Date().getDay();
+    let day = 0;//(new Date().getDay() + 1) % 7;
     
     const [periods,setPeriods] = useState([]);
     const [currentPeriod,setCurrentPeriod] = useState(null);
@@ -58,7 +57,7 @@ export default function HomeScreen({navigation}) {
     {
         if(periods.length)
         {
-            let currentTime = Date.now();
+            let currentTime = Date.now() - 5 * 3600 * 1000;
             for(let i = 0; i < periods.length; i++)
             {
                 let periodEndTime = getTimestampAtHour(periods[i].to);
@@ -68,16 +67,15 @@ export default function HomeScreen({navigation}) {
         }
         return null;
     }
-
     
     useEffect(()=>{
-        if(tables)
+        if(tables && currentTable!==null)
         {
-            let p = day!=="fri" ? tables[currentTable].content[day] : []
+            let p = day!==6 ? tables[currentTable].content[day] : [];
             setPeriods(p);
             setCurrentPeriod(getCurrentPeriod(p));
         }
-    },[tables]);
+    },[tables, currentTable]);
 
     return (
         <View style={styles["page-container"]}>
@@ -85,39 +83,43 @@ export default function HomeScreen({navigation}) {
             <Text weight='b'
             //style[text col-dark fontSize:20 marginTop:25 marginBottom:10]
             style={{...styles['text'],...styles['col-dark'],fontSize:20,marginTop:25,marginBottom:10}}>
-            {t(`days.0`)}</Text>
+            {t(`days.${day}`)}</Text>
 
             <ScrollView style={{width:"100%"}} contentContainerStyle={{flexGrow: 1,alignItems:"center",gap:20,padding:20}}>
             {
                 periods.length ? periods.map((period,index) =>
                 <View key={`period-${index}`}
                 style={{...styles["home-period-container"],"transform": `scale(${index===currentPeriod ? 1.05 : 1})`,borderWidth:index===currentPeriod ? 3 : 0}}>
-                    <Text style={{...styles["color-faint"],fontSize:15}}>{getTimeString(period.from)} - {getTimeString(period.to)}</Text>
+
+                    <View style={{flexDirection: i18n.language==="ar" ? "row-reverse" : "row",alignItems:"center",gap:5,marginBottom:5}}>
+                        <Text style={{...styles["color-faint"],fontSize:15}}>{getTimeString(period.to)}</Text>
+                        <Octicons name="triangle-left" size={30} style={{...styles["color-faint-2"],marginHorizontal:2.5,transform:[{scaleX: i18n.language==="ar" ? 1 : -1}]}} />
+                        <Text style={{...styles["color-faint"],fontSize:15}}>{getTimeString(period.from)}</Text>
+                        <MaterialCommunityIcons name="clock" size={25} style={{...styles["color-faint-2"]}} />
+                    </View>
                     <Text style={{fontSize:25,marginBottom:20,textAlign:"center",textTransform:"capitalize"}}>{period.title}</Text>
                     <View style={{flexDirection:"column",width:"100%",alignItems:"flex-start"}}>
                     {
                         period.location &&
                         <View
-                        style={{flexDirection: i18n.language==="ar" ? "row" : "row-reverse",alignItems:"center",gap:5}}
+                        style={{flexDirection: i18n.language==="ar" ? "row-reverse" : "row",alignItems:"center",gap:5}}
                         >
                             <Text style={{...styles.text,...styles["color-faint-2"],fontSize:15,textTransform:"capitalize",textAlign:"center"}}>{period.location}</Text>
                             <MaterialIcons name="location-on" size={25} style={{...styles["color-faint-2"]}} />
                         </View>
-                        // <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>
                     }
                     {
                         period.instructor &&
                         <View
-                        style={{flexDirection: i18n.language==="ar" ? "row" : "row-reverse",alignItems:"center",gap:5}}
+                        style={{flexDirection: i18n.language==="ar" ? "row-reverse" : "row",alignItems:"center",gap:5}}
                         >
                             <Text style={{...styles.text,...styles["color-faint-2"],fontSize:15,textTransform:"capitalize",textAlign:"center"}}>{period.instructor}</Text>
                             <MaterialIcons name="person" size={25} style={{...styles["color-faint-2"]}} />
                         </View>
-                        // <Text style={{fontSize:15,color:themes[currentTheme]["faint-2"]}}>At: {period.location}</Text>
                     }                        
                     </View>
-                    <View style={{...styles["bg-faint"],position:"absolute",top:0,left:0,margin:5,borderRadius:5,height:25,aspectRatio:1,justifyContent:"center",alignItems:"center"}}>
-                        <Text style={{...styles["color-period-home"]}}>{index+1}</Text>
+                    <View style={{...styles["bg-faint"],position:"absolute",top:-15,left:-15,margin:5,borderRadius:5,height:30,aspectRatio:1,justifyContent:"center",alignItems:"center",shadowColor:"black",elevation:5}}>
+                        <Text weight='b' style={{...styles["color-period-home"],fontSize:17.5}}>{index+1}</Text>
                     </View>
                 </View>
                 )

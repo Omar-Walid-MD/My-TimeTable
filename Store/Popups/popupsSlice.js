@@ -24,8 +24,8 @@ export const makeId = function(length)
 
 export const addPopup = createAsyncThunk(
   'popups/addPopup',
-  async ({text}) => {
-    return {text,id:makeId(5)};
+  async ({text,state}) => {
+    return {text,id:makeId(8),state: state || "success"};
 });
 
 export const removePopup = createAsyncThunk(

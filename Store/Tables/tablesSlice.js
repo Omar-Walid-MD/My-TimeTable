@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-community/async-storage'
 import i18n from '../../i18n';
-import { tableTemplate } from '../../helper';
+import { tableTemplate } from '../../helpers';
 
 const initialState = {
     tables: [
@@ -22,7 +22,7 @@ export const getTables = createAsyncThunk(
 export const getCurrentTable = createAsyncThunk(
   'tables/getCurrentTable',
   async () => {
-    // await AsyncStorage.setItem("currentTable","0");
+    await AsyncStorage.setItem("currentTable","0");
     // console.log("here");
     const res = await AsyncStorage.getItem("currentTable") || 0;
     return res;
